@@ -1,6 +1,13 @@
 package com.zacneubert.echo.models
 
-class Podcast(i: Int) {
-    val title: String = "%d A Podcast".format(i)
-    val description: String = "%d What a great podcast".format(i)
+import java.io.File
+import java.io.Serializable
+
+public class Podcast(folder: File) : Serializable {
+    val title: String = folder.name
+    val description: String = "Description"
+
+    val episodes: List<Episode> = folder.listFiles().map { file ->
+        Episode(this, file)
+    }
 }

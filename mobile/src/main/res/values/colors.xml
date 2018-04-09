@@ -6,4 +6,6 @@
 
     <color name="textDark">#99333333</color>
     <color name="textLight">#99666666</color>
+    <color name="somewhat_transparent">#AAFFFFFF</color>
+    <color name="white">#FFFFFF</color>
 </resources>
