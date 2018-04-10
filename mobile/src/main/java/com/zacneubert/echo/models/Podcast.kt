@@ -3,7 +3,7 @@ package com.zacneubert.echo.models
 import java.io.File
 import java.io.Serializable
 
-public class Podcast(folder: File) : Serializable {
+public class Podcast(val folder: File) : Serializable {
     val title: String = folder.name
     val description: String = "Description"
 

@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.RelativeLayout
+import android.widget.SeekBar
 import android.widget.TextView
 import com.zacneubert.echo.R
 import com.zacneubert.echo.models.Episode
@@ -22,6 +23,9 @@ class PlayerFragment : Fragment(), OnMediaStateChangeListener {
     private lateinit var playButton: ImageButton
     private lateinit var skipBackButton: ImageButton
     private lateinit var skipForwardButton: ImageButton
+    private lateinit var seekBar: SeekBar
+    private lateinit var seekProgress: TextView
+    private lateinit var seekMaximum: TextView
 
     private var uiTimer: Timer = Timer()
     private var handler: Handler = Handler()
@@ -41,36 +45,47 @@ class PlayerFragment : Fragment(), OnMediaStateChangeListener {
         showTitle = rootView.findViewById(R.id.player_show_title)
         episodeTitle = rootView.findViewById(R.id.player_episode_title)
         playButton = rootView.findViewById(R.id.player_play)
-
-        MediaPlayerService.mediaPlayerService?.apply {
-            onMediaStateChange(this)
-        }
+        skipBackButton = rootView.findViewById(R.id.player_skip_back)
+        skipForwardButton = rootView.findViewById(R.id.player_skip_forward)
+        seekBar = rootView.findViewById(R.id.player_seek_bar)
+        seekProgress = rootView.findViewById(R.id.player_progress_text)
+        seekMaximum = rootView.findViewById(R.id.player_progress_max)
 
         playButton.setOnClickListener {
-            MediaPlayerService.mediaPlayerService?.apply {
-                this.togglePlaying()
-            }
+            MediaPlayerService.mediaPlayerService?.togglePlaying()
         }
 
-        skipBackButton = rootView.findViewById(R.id.player_skip_back)
         skipBackButton.setOnClickListener {
-            MediaPlayerService.mediaPlayerService?.apply {
-                this.skipBackward()
-            }
+            MediaPlayerService.mediaPlayerService?.skipBackward()
         }
 
-        skipForwardButton = rootView.findViewById(R.id.player_skip_forward)
         skipForwardButton.setOnClickListener {
-            MediaPlayerService.mediaPlayerService?.apply {
-                this.skipForward()
-            }
+            MediaPlayerService.mediaPlayerService?.skipForward()
         }
+
+        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    MediaPlayerService.mediaPlayerService?.apply {
+                        seekTo(progress)
+                    }
+                }
+            }
+        })
 
         uiTimer = Timer()
         uiTimer.schedule(object : TimerTask() {
             override fun run() {
                 if (MediaPlayerService.mediaPlayerService != null) {
-                    onMediaStateChange(MediaPlayerService.mediaPlayerService!!)
+                    MediaPlayerService.mediaPlayerService?.addStateListener(this@PlayerFragment)
                     uiTimer.cancel()
                     uiTimer.purge()
                 }
@@ -82,36 +97,43 @@ class PlayerFragment : Fragment(), OnMediaStateChangeListener {
 
     override fun onResume() {
         super.onResume()
-        MediaPlayerService.mediaPlayerService?.apply {
-            mediaStateChangeListeners.add(this@PlayerFragment)
-        }
+        MediaPlayerService.mediaPlayerService?.addStateListener(this)
     }
 
     override fun onPause() {
         super.onPause()
-        MediaPlayerService.mediaPlayerService?.apply {
-            if (mediaStateChangeListeners.contains(this@PlayerFragment)) {
-                mediaStateChangeListeners.remove(this@PlayerFragment)
-            }
-        }
+        MediaPlayerService.mediaPlayerService?.removeStateListener(this)
     }
 
-    fun onMediaStateChange(mediaPlayerService: MediaPlayerService) {
-        onMediaStateChange(mediaPlayerService.mediaPlayer, mediaPlayerService.episode)
+    fun longToTime(progress: Int): String {
+        val totalSeconds = progress / 1000
+        val seconds = totalSeconds % 60
+        val totalMinutes = totalSeconds / 60
+        val minutes = totalMinutes % 60
+        val hours = totalMinutes / 60
+
+        return if (hours > 0) "%02d:%02d:%02d".format(hours, minutes, seconds) else "%02d:%02d".format(minutes, seconds)
     }
 
     override fun onMediaStateChange(mediaPlayer: MediaPlayer, episode: Episode) {
         handler.post({
-            backgroundLayout.background = activity.getDrawable(R.drawable.smash)
+            backgroundLayout.background = activity?.getDrawable(R.drawable.smash)
 
             if (mediaPlayer.isPlaying) {
-                playButton.setImageDrawable(activity.getDrawable(R.drawable.ic_pause_black_24dp))
+                playButton.setImageDrawable(activity?.getDrawable(R.drawable.ic_pause_black_24dp))
             } else {
-                playButton.setImageDrawable(activity.getDrawable(R.drawable.ic_play_arrow_black_24dp))
+                playButton.setImageDrawable(activity?.getDrawable(R.drawable.ic_play_arrow_black_24dp))
             }
 
             showTitle.text = episode.podcast.title
             episodeTitle.text = episode.title
+
+            seekBar.max = mediaPlayer.duration
+            seekBar.progress = mediaPlayer.currentPosition
+
+            seekMaximum.text = longToTime(mediaPlayer.duration)
+            seekProgress.text = longToTime(mediaPlayer.currentPosition)
+
         })
     }
 }

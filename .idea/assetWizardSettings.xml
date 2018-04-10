@@ -18,7 +18,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/home/zac/Downloads/studio/android-studio/plugins/android/lib/android.jar!/images/material_design_icons/av/ic_surround_sound_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/home/zac/Downloads/studio/android-studio/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_settings_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -28,8 +28,7 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="echo_logo_placeholder" />
+                            <entry key="outputName" value="ic_settings_black_24dp" />
                             <entry key="sourceFile" value="$PROJECT_DIR$/../Echo/mobile/src/main/res/drawable/ic_skip_next_black_24px.svg" />
                           </map>
                         </option>

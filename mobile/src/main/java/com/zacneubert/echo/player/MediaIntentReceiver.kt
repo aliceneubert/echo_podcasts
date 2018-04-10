@@ -28,28 +28,20 @@ class MediaIntentReceiver : BroadcastReceiver() {
         }
     }
 
-    fun processKeyCode(keyCode: Int) {
+    private fun processKeyCode(keyCode: Int) {
         MediaPlayerService.mediaPlayerService?.apply {
             when (keyCode) {
-                KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                    if (!mediaPlayer.isPlaying) {
-                        mediaPlayer.start()
-                    }
-                }
-                KeyEvent.KEYCODE_MEDIA_PAUSE -> {
-                    if (mediaPlayer.isPlaying) {
-                        mediaPlayer.pause()
-                    }
-                }
-                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> this.togglePlaying()
+                KeyEvent.KEYCODE_MEDIA_PLAY -> start()
+                KeyEvent.KEYCODE_MEDIA_PAUSE -> pause()
+                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> togglePlaying()
 
-                KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> this.skipForward()
-                KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD -> this.skipForward()
-                KeyEvent.KEYCODE_MEDIA_NEXT -> this.skipForward()
+                KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
+                KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD,
+                KeyEvent.KEYCODE_MEDIA_NEXT -> skipForward()
 
-                KeyEvent.KEYCODE_MEDIA_REWIND -> this.skipBackward()
-                KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD -> this.skipBackward()
-                KeyEvent.KEYCODE_MEDIA_PREVIOUS -> this.skipBackward()
+                KeyEvent.KEYCODE_MEDIA_REWIND,
+                KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD,
+                KeyEvent.KEYCODE_MEDIA_PREVIOUS -> skipBackward()
             }
         }
     }

@@ -12,4 +12,8 @@ public class Episode(podcast: Podcast, file: File) : Serializable {
     fun getUri() : Uri {
         return Uri.fromFile(file)
     }
+
+    fun getStopTimeKey() : String {
+        return file.absolutePath + "__" + podcast.title + "__STOPPED_TIME"
+    }
 }
