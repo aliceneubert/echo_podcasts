@@ -1,10 +1,12 @@
 package com.zacneubert.echo.player
 
 import android.app.Activity
-import android.media.MediaPlayer
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,9 +16,14 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.zacneubert.echo.R
 import com.zacneubert.echo.models.Episode
+import com.zacneubert.echo.player.MediaPlayerService.Companion.duration
+import com.zacneubert.echo.player.MediaPlayerService.Companion.mediaControls
+import com.zacneubert.echo.player.MediaPlayerService.Companion.metadata
+import com.zacneubert.echo.player.MediaPlayerService.Companion.playbackState
+import com.zacneubert.echo.player.MediaPlayerService.Companion.podcastTitle
 import java.util.*
 
-class PlayerFragment : Fragment(), OnMediaStateChangeListener {
+class PlayerFragment : Fragment() {
     private lateinit var backgroundLayout: RelativeLayout
     private lateinit var showTitle: TextView
     private lateinit var episodeTitle: TextView
@@ -33,7 +40,7 @@ class PlayerFragment : Fragment(), OnMediaStateChangeListener {
     companion object {
         fun newInstance(activity: Activity, episode: Episode, doStartService: Boolean): PlayerFragment {
             val playerFragment = PlayerFragment()
-            if (doStartService) activity.startService(MediaPlayerService.ignitionIntent(activity, episode))
+            if (doStartService) ContextCompat.startForegroundService(activity, MediaPlayerService.ignitionIntent(activity, episode))
             return playerFragment
         }
     }
@@ -52,15 +59,34 @@ class PlayerFragment : Fragment(), OnMediaStateChangeListener {
         seekMaximum = rootView.findViewById(R.id.player_progress_max)
 
         playButton.setOnClickListener {
-            MediaPlayerService.mediaPlayerService?.togglePlaying()
+            activity?.apply {
+                playbackState(this)?.apply {
+                    when (this.state) {
+                        PlaybackStateCompat.STATE_PAUSED -> {
+                            mediaControls(activity)?.play()
+                        }
+                        PlaybackStateCompat.STATE_PLAYING -> {
+                            mediaControls(activity)?.pause()
+                        }
+                        else -> {
+                            var i = 0
+                            i++
+                        }
+                    }
+                }
+            }
         }
 
         skipBackButton.setOnClickListener {
-            MediaPlayerService.mediaPlayerService?.skipBackward()
+            activity?.apply {
+                mediaControls(this)?.skipToPrevious()
+            }
         }
 
         skipForwardButton.setOnClickListener {
-            MediaPlayerService.mediaPlayerService?.skipForward()
+            activity?.apply {
+                mediaControls(this)?.skipToNext()
+            }
         }
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -74,38 +100,33 @@ class PlayerFragment : Fragment(), OnMediaStateChangeListener {
 
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    MediaPlayerService.mediaPlayerService?.apply {
-                        seekTo(progress)
+                    activity?.apply {
+                        mediaControls(this)?.seekTo(progress.toLong())
                     }
                 }
             }
         })
-
-        uiTimer = Timer()
-        uiTimer.schedule(object : TimerTask() {
-            override fun run() {
-                if (MediaPlayerService.mediaPlayerService != null) {
-                    MediaPlayerService.mediaPlayerService?.addStateListener(this@PlayerFragment)
-                    uiTimer.cancel()
-                    uiTimer.purge()
-                }
-            }
-        }, 10, 10)
 
         return rootView
     }
 
     override fun onResume() {
         super.onResume()
-        MediaPlayerService.mediaPlayerService?.addStateListener(this)
+        uiTimer = Timer()
+        uiTimer.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                onMediaStateChange()
+            }
+        }, 0, 10)
     }
 
     override fun onPause() {
         super.onPause()
-        MediaPlayerService.mediaPlayerService?.removeStateListener(this)
+        uiTimer.cancel()
+        uiTimer.purge()
     }
 
-    fun longToTime(progress: Int): String {
+    private fun longToTime(progress: Long): String {
         val totalSeconds = progress / 1000
         val seconds = totalSeconds % 60
         val totalMinutes = totalSeconds / 60
@@ -115,25 +136,32 @@ class PlayerFragment : Fragment(), OnMediaStateChangeListener {
         return if (hours > 0) "%02d:%02d:%02d".format(hours, minutes, seconds) else "%02d:%02d".format(minutes, seconds)
     }
 
-    override fun onMediaStateChange(mediaPlayer: MediaPlayer, episode: Episode) {
+    fun onMediaStateChange() {
         handler.post({
+            if (activity == null) return@post
+            val context: Context = activity
+
             backgroundLayout.background = activity?.getDrawable(R.drawable.smash)
 
-            if (mediaPlayer.isPlaying) {
-                playButton.setImageDrawable(activity?.getDrawable(R.drawable.ic_pause_black_24dp))
-            } else {
-                playButton.setImageDrawable(activity?.getDrawable(R.drawable.ic_play_arrow_black_24dp))
+            metadata(context)?.apply {
+                episodeTitle.text = this.description.title
+                showTitle.text = podcastTitle(context)
+                duration(context)?.apply {
+                    seekBar.max = this.toInt()
+                    seekMaximum.text = longToTime(this)
+                }
             }
 
-            showTitle.text = episode.podcast.title
-            episodeTitle.text = episode.title
+            playbackState(context)?.apply {
+                if (this.state == PlaybackStateCompat.STATE_PLAYING) {
+                    playButton.setImageDrawable(activity?.getDrawable(R.drawable.ic_pause_black_24dp))
+                } else {
+                    playButton.setImageDrawable(activity?.getDrawable(R.drawable.ic_play_arrow_black_24dp))
+                }
 
-            seekBar.max = mediaPlayer.duration
-            seekBar.progress = mediaPlayer.currentPosition
-
-            seekMaximum.text = longToTime(mediaPlayer.duration)
-            seekProgress.text = longToTime(mediaPlayer.currentPosition)
-
+                seekBar.progress = this.position.toInt()
+                seekProgress.text = longToTime(this.position)
+            }
         })
     }
 }
