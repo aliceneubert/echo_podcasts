@@ -157,8 +157,8 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     private fun setMetadata() {
         mSession!!.setMetadata(
                 MediaMetadataCompat.Builder()
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, episode.podcast.title)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, episode.podcast.title)
+                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, episode.podcast.target.title)
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, episode.podcast.target.title)
                         .putString(MediaMetadataCompat.METADATA_KEY_TITLE, episode.title)
                         .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, episode.title)
                         .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mediaPlayer.duration.toLong())
@@ -207,7 +207,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.echo_logo_placeholder)
-                .setContentText(episode.podcast.title)
+                .setContentText(episode.podcast.target.title)
                 .setContentTitle(episode.title)
                 .setPriority(PRIORITY_MAX)
                 .addAction(R.drawable.ic_skip_previous_black_24dp, "Previous", skipBackAction)
@@ -260,13 +260,12 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     fun saveStopTime() {
         val stopTime = mediaPlayer.currentPosition
         if (stopTime > 10 * TimeMillis.SECOND) { // Never save less than 10 seconds in, to avoid overwriting better save times
-            PreferenceManager.getDefaultSharedPreferences(this).edit().putInt(episode.getStopTimeKey(), stopTime).apply()
+            episode.lastStopTime = stopTime.toLong()
         }
     }
 
     private fun getStopTime(): Int {
-        val time = PreferenceManager.getDefaultSharedPreferences(this).getInt(episode.getStopTimeKey(), 0)
-        return time
+        return episode.lastStopTime.toInt()
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
@@ -276,29 +275,22 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaItem>>) {
         val mediaItems = mutableListOf<MediaItem>()
         if (parentId == MEDIA_ROOT_ID) {
-            val podcasts = LegacyPodcastProvider.getPodcastDirectory()
-                    .listFiles()
-                    .filter { f -> f.isDirectory }
-                    .map { f -> Podcast(f) }
-                    .sortedBy { p -> p.folder.lastModified() }
-                    .reversed()
+            val podcasts = listOf<Podcast>()
             podcasts.forEach {
                 mediaItems.add(MediaItem(MediaDescriptionCompat.Builder()
                         .setTitle(it.title)
                         .setDescription(it.description)
-                        .setMediaId(it.folder.absolutePath)
+                        .setMediaId(it.id.toString())
                         .build(), MediaItem.FLAG_BROWSABLE))
             }
         } else {
-            val podcast = Podcast(File(parentId))
-            podcast.episodes
-                    .sortedBy { e -> e.file.lastModified() }
-                    .reversed()
+            val podcast = Podcast()
+            listOf<Episode>()
                     .forEach {
                         mediaItems.add(MediaItem(MediaDescriptionCompat.Builder()
                                 .setTitle(it.title)
                                 .setMediaUri(it.getUri())
-                                .setMediaId(it.file.absolutePath)
+                                .setMediaId(it.id.toString())
                                 .build(), MediaItem.FLAG_PLAYABLE))
                     }
         }
@@ -323,10 +315,11 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
         }
 
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
-            val episodeFile = File(mediaId)
-            val podcast = Podcast(episodeFile.parentFile)
-            val episode = Episode(podcast, episodeFile)
-            ContextCompat.startForegroundService(applicationContext, MediaPlayerService.ignitionIntent(applicationContext, episode))
+            //TODO make this work w/ objectbox
+            //val episodeFile = File(mediaId)
+            //val podcast = Podcast(episodeFile.parentFile)
+            //val episode = Episode(podcast, episodeFile)
+            //ContextCompat.startForegroundService(applicationContext, MediaPlayerService.ignitionIntent(applicationContext, episode))
         }
 
         override fun onPause() {
@@ -385,7 +378,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     override fun onAudioFocusChange(focusChange: Int) {
         when (focusChange) {
             AudioManager.AUDIOFOCUS_GAIN -> {
-                if(System.currentTimeMillis() - lastDucked < TimeMillis.SECOND * 5) {
+                if(System.currentTimeMillis() - lastDucked < TimeMillis.SECOND * 10) {
                     mMediaCallback.onPlay()
                 }
             }

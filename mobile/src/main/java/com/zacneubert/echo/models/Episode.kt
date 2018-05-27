@@ -1,19 +1,28 @@
 package com.zacneubert.echo.models
 
 import android.net.Uri
+import io.objectbox.annotation.Entity
+import io.objectbox.annotation.Id
+import io.objectbox.relation.ToOne
 import java.io.File
 import java.io.Serializable
 
-public class Episode(podcast: Podcast, file: File) : Serializable {
-    val title: String = file.name
-    val podcast: Podcast = podcast
-    val file: File = file
+@Entity
+public class Episode : Serializable {
+    @Id var id: Long = 0
 
-    fun getUri() : Uri {
-        return Uri.fromFile(file)
+    var title: String = ""
+    var absolutePath: String = ""
+    var streamingUrl: String = ""
+    var lastStopTime: Long = 0
+
+    lateinit var podcast: ToOne<Podcast>
+
+    fun getFile() : File {
+        return File(absolutePath)
     }
 
-    fun getStopTimeKey() : String {
-        return file.absolutePath + "__" + podcast.title + "__STOPPED_TIME"
+    fun getUri() : Uri {
+        return if (absolutePath != "") Uri.fromFile(getFile()) else Uri.parse(streamingUrl)
     }
 }

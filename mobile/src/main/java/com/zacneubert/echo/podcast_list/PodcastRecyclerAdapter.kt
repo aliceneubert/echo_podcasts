@@ -17,8 +17,8 @@ class PodcastRecyclerAdapter(private val episodeSelectedListener: EpisodeSelecte
 
     class ViewHolder(val linearLayout: LinearLayout) : RecyclerView.ViewHolder(linearLayout)
 
-    override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
-        holder?.apply {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.apply {
             val podcast = podcasts[position]
 
             val descriptionView = this.linearLayout.findViewById<TextView>(R.id.description) as TextView
@@ -30,7 +30,7 @@ class PodcastRecyclerAdapter(private val episodeSelectedListener: EpisodeSelecte
             val podcast_item_play = this.linearLayout.findViewById<ImageButton>(R.id.podcast_item_play);
             podcast_item_play.setOnClickListener({
                 if(podcast.episodes.isNotEmpty()) {
-                    val newestEpisode = podcast.episodes.sortedBy { e -> e.file.lastModified() }.reversed()[0]
+                    val newestEpisode = podcast.episodes.reversed()[0]
                     episodeSelectedListener.onEpisodeSelected(newestEpisode)
                 }
             })
@@ -51,8 +51,8 @@ class PodcastRecyclerAdapter(private val episodeSelectedListener: EpisodeSelecte
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
-        val rootLayout = LayoutInflater.from(parent!!.context)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val rootLayout = LayoutInflater.from(parent.context)
                 .inflate(R.layout.list_item_podcast, parent, false) as LinearLayout
         return ViewHolder(rootLayout)
     }

@@ -4,4 +4,12 @@
     <string name="title_now_playing">Now Playing</string>
     <string name="title_settings">Settings</string>
     <string name="hello_world">Hello World</string>
+
+    <string name="response_error_500">Http Error 500: Api Encountered an Error</string>
+    <string name="response_error_405">Http Error 405: Method not allowed</string>
+    <string name="response_error_404">Http Error 404: Resource not found</string>
+    <string name="response_error_401">Http Error 401: Unauthorized</string>
+    <string name="response_error_general">There was a problem with the request</string>
+    <string name="response_error">Response Code %1$d: %2$s</string>
+    <string name="check_connection">Check your connection</string>
 </resources>

@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
@@ -45,8 +46,8 @@ class PlayerFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val rootView = inflater!!.inflate(R.layout.fragment_player, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val rootView = inflater.inflate(R.layout.fragment_player, container, false)
 
         backgroundLayout = rootView.findViewById(R.id.player_background)
         showTitle = rootView.findViewById(R.id.player_show_title)
@@ -63,10 +64,10 @@ class PlayerFragment : Fragment() {
                 playbackState(this)?.apply {
                     when (this.state) {
                         PlaybackStateCompat.STATE_PAUSED -> {
-                            mediaControls(activity)?.play()
+                            mediaControls(activity!!)?.play()
                         }
                         PlaybackStateCompat.STATE_PLAYING -> {
-                            mediaControls(activity)?.pause()
+                            mediaControls(activity!!)?.pause()
                         }
                         else -> {
                             var i = 0
@@ -139,7 +140,7 @@ class PlayerFragment : Fragment() {
     fun onMediaStateChange() {
         handler.post({
             if (activity == null) return@post
-            val context: Context = activity
+            val context: Context = activity as FragmentActivity
 
             backgroundLayout.background = activity?.getDrawable(R.drawable.smash)
 
