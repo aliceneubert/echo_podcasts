@@ -5,10 +5,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.*
 import com.bumptech.glide.Glide
+import com.zacneubert.echo.EchoApplication
 import com.zacneubert.echo.R
 import com.zacneubert.echo.api.itunes.models.ItunesPodcast
+import com.zacneubert.echo.models.Podcast
 
-class ItunesPodcastRecyclerAdapter(private val podcasts: Array<ItunesPodcast>) : RecyclerView.Adapter<ItunesPodcastRecyclerAdapter.ViewHolder>() {
+class ItunesPodcastRecyclerAdapter(private val podcasts: Array<ItunesPodcast>, private val application: EchoApplication) : RecyclerView.Adapter<ItunesPodcastRecyclerAdapter.ViewHolder>() {
 
     class ViewHolder(val linearLayout: LinearLayout) : RecyclerView.ViewHolder(linearLayout)
 
@@ -18,23 +20,24 @@ class ItunesPodcastRecyclerAdapter(private val podcasts: Array<ItunesPodcast>) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.apply {
-            val podcast = podcasts[position]
+            val itunesPodcast = podcasts[position]
 
             val imageView = this.linearLayout.findViewById<TextView>(R.id.itunes_podcast_image) as ImageView
-            Glide.with(imageView.context).load(podcast.artworkUrl600).into(imageView)
+            Glide.with(imageView.context).load(itunesPodcast.artworkUrl600).into(imageView)
 
             val titleView = this.linearLayout.findViewById<TextView>(R.id.itunes_title) as TextView
-            titleView.text = asShortString(podcast.collectionName)
+            titleView.text = asShortString(itunesPodcast.collectionName)
 
             val artistView = this.linearLayout.findViewById<TextView>(R.id.itunes_artist) as TextView
-            artistView.text = asShortString(podcast.artistName)
+            artistView.text = asShortString(itunesPodcast.artistName)
 
             val genreView = this.linearLayout.findViewById<TextView>(R.id.itunes_genre) as TextView
-            genreView.text = asShortString(podcast.primaryGenreName)
+            genreView.text = asShortString(itunesPodcast.primaryGenreName)
 
             val podcast_item_add = this.linearLayout.findViewById<ImageButton>(R.id.itunes_podcast_item_add)
             podcast_item_add.setOnClickListener({
-                Toast.makeText(podcast_item_add.context, "Bloopy-doopity-doop", Toast.LENGTH_SHORT).show();
+                application.boxStore.boxFor(Podcast::class.java).put(itunesPodcast.asPodcast())
+                Toast.makeText(podcast_item_add.context, "Added!", Toast.LENGTH_SHORT).show()
             })
         }
     }

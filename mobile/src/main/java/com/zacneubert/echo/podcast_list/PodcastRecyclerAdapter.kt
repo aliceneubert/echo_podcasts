@@ -1,14 +1,18 @@
 package com.zacneubert.echo.podcast_list
 
+import android.content.Context
 import android.content.DialogInterface
 import android.support.v7.app.AlertDialog
+import android.support.v7.widget.CardView
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.bumptech.glide.Glide
+import com.zacneubert.echo.episode_list.EpisodeListActivity
 import com.zacneubert.echo.R
 import com.zacneubert.echo.models.Podcast
 
@@ -21,13 +25,21 @@ class PodcastRecyclerAdapter(private val episodeSelectedListener: EpisodeSelecte
         holder.apply {
             val podcast = podcasts[position]
 
-            val descriptionView = this.linearLayout.findViewById<TextView>(R.id.description) as TextView
-            descriptionView.text = podcast.description
+            val cardView = this.linearLayout.findViewById<TextView>(R.id.podcast_card_container) as CardView
+            cardView.setOnClickListener {
+                showEpisodes(cardView.context, podcast)
+            }
+
+            val artView = this.linearLayout.findViewById<TextView>(R.id.podcast_art) as ImageView
+            Glide.with(artView.context).load(podcast.artUri).into(artView)
+
+            val artistView = this.linearLayout.findViewById<TextView>(R.id.description) as TextView
+            artistView.text = podcast.artist
 
             val titleView = this.linearLayout.findViewById<TextView>(R.id.title) as TextView
             titleView.text = podcast.title
 
-            val podcast_item_play = this.linearLayout.findViewById<ImageButton>(R.id.podcast_item_play);
+            val podcast_item_play = this.linearLayout.findViewById<ImageButton>(R.id.podcast_item_play)
             podcast_item_play.setOnClickListener({
                 if(podcast.episodes.isNotEmpty()) {
                     val newestEpisode = podcast.episodes.reversed()[0]
@@ -35,7 +47,7 @@ class PodcastRecyclerAdapter(private val episodeSelectedListener: EpisodeSelecte
                 }
             })
 
-            val podcast_item_list_episodes = this.linearLayout.findViewById<ImageButton>(R.id.podcast_item_show_episodes);
+            val podcast_item_list_episodes = this.linearLayout.findViewById<ImageButton>(R.id.podcast_item_show_episodes)
             podcast_item_list_episodes.setOnClickListener({
                 if(podcast.episodes.isNotEmpty()) {
                     AlertDialog.Builder(podcast_item_list_episodes.context)
@@ -58,4 +70,8 @@ class PodcastRecyclerAdapter(private val episodeSelectedListener: EpisodeSelecte
     }
 
     override fun getItemCount(): Int = podcasts.size
+
+    fun showEpisodes(context : Context, podcast : Podcast) {
+        context.startActivity(EpisodeListActivity.ignitionIntent(context, podcast))
+    }
 }

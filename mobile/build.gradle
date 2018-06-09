@@ -52,4 +52,8 @@ dependencies {
 
     compile "io.objectbox:objectbox-android:$objectboxVersion"
     compile "io.objectbox:objectbox-kotlin:$objectboxVersion"
+
+    implementation "org.jetbrains.anko:anko-commons:0.10.4"
+
+    compile 'com.rometools:rome:1.10.0'
 }

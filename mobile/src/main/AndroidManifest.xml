@@ -28,6 +28,10 @@
             android:name=".add_podcast.AddPodcastActivity"
             android:label="Add Podcast" />
 
+        <activity
+            android:name=".episode_list.EpisodeListActivity"
+            android:label="List Episodes" />
+
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />

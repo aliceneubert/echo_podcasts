@@ -157,8 +157,10 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     private fun setMetadata() {
         mSession!!.setMetadata(
                 MediaMetadataCompat.Builder()
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, episode.podcast.target.title)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, episode.podcast.target.title)
+                        //.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, episode.podcast.target.title)
+                        //.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, episode.podcast.target.title)
+                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, episode.title)
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, episode.title)
                         .putString(MediaMetadataCompat.METADATA_KEY_TITLE, episode.title)
                         .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, episode.title)
                         .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mediaPlayer.duration.toLong())
@@ -207,7 +209,9 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.echo_logo_placeholder)
-                .setContentText(episode.podcast.target.title)
+                //.setContentText(episode.podcast.target.title)
+                // TODO NOT THIS ^^
+                .setContentText(episode.title)
                 .setContentTitle(episode.title)
                 .setPriority(PRIORITY_MAX)
                 .addAction(R.drawable.ic_skip_previous_black_24dp, "Previous", skipBackAction)

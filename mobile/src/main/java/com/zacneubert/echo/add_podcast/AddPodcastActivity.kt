@@ -11,6 +11,7 @@ import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import com.zacneubert.echo.EchoApplication
 import com.zacneubert.echo.R
 import com.zacneubert.echo.api.callback.HandledCallback
 import com.zacneubert.echo.api.itunes.ItunesApi
@@ -21,7 +22,6 @@ import retrofit2.Response
 import java.util.*
 
 class AddPodcastActivity : AppCompatActivity() {
-    val query: String = ""
     lateinit var queryEditText: EditText
     lateinit var itunesPodcastRecycler: RecyclerView
 
@@ -53,7 +53,7 @@ class AddPodcastActivity : AppCompatActivity() {
                             initializeListFromQuery()
                         }
                     }
-                }, 300)
+                }, 500)
                 stoppedTypingSet = true
             }
         })
@@ -71,7 +71,8 @@ class AddPodcastActivity : AppCompatActivity() {
             override fun onSuccessfulResponse(call: Call<SearchResult>?, response: Response<SearchResult>?) {
                 response?.apply {
                     itunesPodcastRecycler.adapter = ItunesPodcastRecyclerAdapter(
-                            this.body()!!.results
+                            this.body()!!.results,
+                            this@AddPodcastActivity.application as EchoApplication
                     )
                     itunesPodcastRecycler.layoutManager = LinearLayoutManager(this@AddPodcastActivity)
                 }

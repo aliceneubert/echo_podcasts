@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.zacneubert.echo.EchoApplication
 import com.zacneubert.echo.MainActivity
 import com.zacneubert.echo.R
 import com.zacneubert.echo.add_podcast.AddPodcastActivity
@@ -19,6 +20,7 @@ import java.util.Collections.max
 
 class PodcastListFragment : Fragment() {
     private lateinit var episodeSelectedListener: EpisodeSelectedListener
+    private lateinit var podcastRecycler : RecyclerView
 
     companion object {
         fun newInstance(mainActivity: MainActivity): PodcastListFragment {
@@ -36,15 +38,20 @@ class PodcastListFragment : Fragment() {
             ContextCompat.startActivity(it.context, Intent(it.context, AddPodcastActivity::class.java), null)
         })
 
-        val podcastRecycler = rootView.findViewById<RecyclerView>(R.id.podcast_recycler) as RecyclerView
+        podcastRecycler = rootView.findViewById<RecyclerView>(R.id.podcast_recycler) as RecyclerView
+        setPodcastList()
 
-        val podcasts = null
-
-        //podcastRecycler.adapter = PodcastRecyclerAdapter(episodeSelectedListener,
-        //        podcasts.sortedBy { p -> max(p.episodes.map { e -> e.file.lastModified() }) }.reversed().toTypedArray()
-        //)
-        podcastRecycler.layoutManager = LinearLayoutManager(activity)
         return rootView
     }
-}
 
+    override fun onResume() {
+        super.onResume()
+        setPodcastList()
+    }
+
+    private fun setPodcastList() {
+        val podcasts = (activity!!.application as EchoApplication).boxStore.boxFor(Podcast::class.java).all
+        podcastRecycler.adapter = PodcastRecyclerAdapter(episodeSelectedListener, podcasts.toTypedArray())
+        podcastRecycler.layoutManager = LinearLayoutManager(activity)
+    }
+}
