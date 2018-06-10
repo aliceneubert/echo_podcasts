@@ -35,7 +35,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:hint="Title"
-                    android:textColor="@color/textDark" />
+                    android:textColor="@color/textNeutral" />
 
                 <TextView
                     android:id="@+id/itunes_artist"

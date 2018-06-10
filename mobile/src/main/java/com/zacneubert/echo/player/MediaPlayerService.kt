@@ -10,9 +10,9 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationCompat.PRIORITY_MAX
 import android.support.v4.content.ContextCompat
@@ -25,18 +25,20 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.KeyEvent
+import com.zacneubert.echo.EchoApplication
 import com.zacneubert.echo.MainActivity
 import com.zacneubert.echo.R
-import com.zacneubert.echo.helpers.LegacyPodcastProvider
 import com.zacneubert.echo.helpers.TimeMillis
 import com.zacneubert.echo.models.Episode
+import com.zacneubert.echo.models.Episode_
 import com.zacneubert.echo.models.Podcast
-import java.io.File
+import com.zacneubert.echo.models.Podcast_
 
 
 class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener {
     companion object {
         const val EPISODE_KEY: String = "EPISODE_KEY"
+        const val PODCAST_KEY: String = "PODCAST_KEY"
         const val CHANNEL_ID: String = "Media Player Notification Channel"
         const val NOTIFICATION_ID: Int = 6
         const val MEDIA_SESSION_TOKEN: String = "MediaPlayerService"
@@ -49,6 +51,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
         fun ignitionIntent(context: Context, episode: Episode): Intent {
             val intent = Intent(context, MediaPlayerService::class.java)
             intent.putExtra(EPISODE_KEY, episode)
+            intent.putExtra(PODCAST_KEY, episode.podcast.getTarget())
             return intent
         }
 
@@ -81,6 +84,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     }
 
     lateinit var episode: Episode
+    lateinit var podcast: Podcast
     var mediaPlayer: MediaPlayer = MediaPlayer()
         private set
 
@@ -120,6 +124,12 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         episode = intent.extras.get(EPISODE_KEY) as Episode
+        podcast = intent.extras.get(PODCAST_KEY) as Podcast
+
+        val application = (application as EchoApplication)
+        episode = application.episodeBox()!!.find(Episode_.__ID_PROPERTY, episode.id).first()
+        podcast = application.podcastBox()!!.find(Podcast_.__ID_PROPERTY, podcast.id).first()
+
         mediaPlayerService = this
 
         startForeground(NOTIFICATION_ID, buildNotification(true))
@@ -148,24 +158,37 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
             playerPrepared = true
             mMediaCallback.onPlay()
             setMetadata()
-            mMediaCallback.onSeekTo(getStopTime().toLong())
+            mMediaCallback.onSeekTo(getStopTime())
         }
         mediaPlayer.prepareAsync()
     }
 
 
     private fun setMetadata() {
-        mSession!!.setMetadata(
-                MediaMetadataCompat.Builder()
-                        //.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, episode.podcast.target.title)
-                        //.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, episode.podcast.target.title)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, episode.title)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, episode.title)
-                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, episode.title)
-                        .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, episode.title)
-                        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mediaPlayer.duration.toLong())
-                        .build()
-        )
+        val mediaMetadataCompatBuilder = MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, podcast.title)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, podcast.title)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, episode.title)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, episode.title)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mediaPlayer.duration.toLong())
+
+        var episodeArtUrl = episode.artUrl
+        if (episodeArtUrl.isEmpty()) {
+            if(podcast.artUri.isNotEmpty()) {
+                episodeArtUrl = podcast.artUri
+            }
+        }
+
+        if(episodeArtUrl.isNotEmpty()) {
+            mediaMetadataCompatBuilder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, episodeArtUrl)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, episodeArtUrl)
+        }
+
+        if (podcast.artUri.isNotEmpty()) {
+            mediaMetadataCompatBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, podcast.artUri)
+        }
+
+        mSession!!.setMetadata(mediaMetadataCompatBuilder.build())
     }
 
     private fun buildNotificationAction(keyCode: Int): PendingIntent {
@@ -209,9 +232,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.echo_logo_placeholder)
-                //.setContentText(episode.podcast.target.title)
-                // TODO NOT THIS ^^
-                .setContentText(episode.title)
+                .setContentText(podcast.title)
                 .setContentTitle(episode.title)
                 .setPriority(PRIORITY_MAX)
                 .addAction(R.drawable.ic_skip_previous_black_24dp, "Previous", skipBackAction)
@@ -250,7 +271,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
                 .build()
     }
 
-    private fun audioFocusReleaseRequest() : AudioFocusRequest {
+    private fun audioFocusReleaseRequest(): AudioFocusRequest {
         val audioAttributes = AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                 .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -265,11 +286,12 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
         val stopTime = mediaPlayer.currentPosition
         if (stopTime > 10 * TimeMillis.SECOND) { // Never save less than 10 seconds in, to avoid overwriting better save times
             episode.lastStopTime = stopTime.toLong()
+            (application as EchoApplication).episodeBox()!!.put(episode)
         }
     }
 
-    private fun getStopTime(): Int {
-        return episode.lastStopTime.toInt()
+    private fun getStopTime(): Long {
+        return episode.lastStopTime
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
@@ -279,24 +301,29 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaItem>>) {
         val mediaItems = mutableListOf<MediaItem>()
         if (parentId == MEDIA_ROOT_ID) {
-            val podcasts = listOf<Podcast>()
+            val podcasts = (application as EchoApplication).chronologicalPodcasts()
             podcasts.forEach {
-                mediaItems.add(MediaItem(MediaDescriptionCompat.Builder()
+                val mediaItemBuilder = MediaDescriptionCompat.Builder()
                         .setTitle(it.title)
                         .setDescription(it.description)
                         .setMediaId(it.id.toString())
-                        .build(), MediaItem.FLAG_BROWSABLE))
+
+                if (it.artUri.isNotEmpty()) mediaItemBuilder.setIconUri(Uri.parse(it.artUri))
+
+                mediaItems.add(MediaItem(mediaItemBuilder.build(), MediaItem.FLAG_BROWSABLE))
             }
         } else {
-            val podcast = Podcast()
-            listOf<Episode>()
-                    .forEach {
-                        mediaItems.add(MediaItem(MediaDescriptionCompat.Builder()
-                                .setTitle(it.title)
-                                .setMediaUri(it.getUri())
-                                .setMediaId(it.id.toString())
-                                .build(), MediaItem.FLAG_PLAYABLE))
-                    }
+            val podcast = (application as EchoApplication).podcastBox()!!.find(Podcast_.__ID_PROPERTY, parentId.toLong()).firstOrNull()
+            podcast?.chronologicalEpisodes()?.forEach {
+                val mediaItemBuilder = MediaDescriptionCompat.Builder()
+                        .setTitle(it.title)
+                        .setMediaUri(it.getUri())
+                        .setMediaId(it.id.toString())
+
+                if (it.artUrl.isNotEmpty()) mediaItemBuilder.setIconUri(Uri.parse(it.artUrl)).setMediaUri(Uri.parse(it.artUrl))
+
+                mediaItems.add(MediaItem(mediaItemBuilder.build(), MediaItem.FLAG_PLAYABLE))
+            }
         }
         result.sendResult(mediaItems)
     }
@@ -319,11 +346,10 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
         }
 
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
-            //TODO make this work w/ objectbox
-            //val episodeFile = File(mediaId)
-            //val podcast = Podcast(episodeFile.parentFile)
-            //val episode = Episode(podcast, episodeFile)
-            //ContextCompat.startForegroundService(applicationContext, MediaPlayerService.ignitionIntent(applicationContext, episode))
+            val episode = (application as EchoApplication).episodeBox()!!.find(Episode_.__ID_PROPERTY, mediaId!!.toLong()).firstOrNull()
+            if (episode != null) {
+                ContextCompat.startForegroundService(applicationContext, MediaPlayerService.ignitionIntent(applicationContext, episode))
+            }
         }
 
         override fun onPause() {
@@ -382,7 +408,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     override fun onAudioFocusChange(focusChange: Int) {
         when (focusChange) {
             AudioManager.AUDIOFOCUS_GAIN -> {
-                if(System.currentTimeMillis() - lastDucked < TimeMillis.SECOND * 10) {
+                if (System.currentTimeMillis() - lastDucked < TimeMillis.SECOND * 10) {
                     mMediaCallback.onPlay()
                 }
             }
@@ -394,7 +420,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
                         mMediaCallback.onPause()
                         lastDucked = System.currentTimeMillis()
                     }
-                } catch (e : IllegalStateException) {
+                } catch (e: IllegalStateException) {
                     // Don't die here plz
                 }
             }

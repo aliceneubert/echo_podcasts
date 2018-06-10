@@ -35,11 +35,14 @@ class EpisodeRecyclerAdapter(private val episodes: Array<Episode>) : RecyclerVie
                 artView.visibility = VISIBLE
             }
 
-            val descriptionView = this.linearLayout.findViewById<TextView>(R.id.description) as TextView
-            descriptionView.text = episode.description
-
             val titleView = this.linearLayout.findViewById<TextView>(R.id.title) as TextView
             titleView.text = episode.title
+
+            val dateView = this.linearLayout.findViewById<TextView>(R.id.publishDate) as TextView
+            dateView.text = episode.formattedDate()
+
+            val descriptionView = this.linearLayout.findViewById<TextView>(R.id.description) as TextView
+            descriptionView.text = episode.description
 
             val podcast_item_play = this.linearLayout.findViewById<ImageButton>(R.id.podcast_item_play)
             podcast_item_play.setOnClickListener({

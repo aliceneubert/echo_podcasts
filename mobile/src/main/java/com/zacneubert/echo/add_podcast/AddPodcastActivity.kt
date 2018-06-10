@@ -53,7 +53,7 @@ class AddPodcastActivity : AppCompatActivity() {
                             initializeListFromQuery()
                         }
                     }
-                }, 500)
+                }, 1000)
                 stoppedTypingSet = true
             }
         })

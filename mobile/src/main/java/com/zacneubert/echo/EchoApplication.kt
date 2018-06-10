@@ -23,4 +23,14 @@ class EchoApplication : Application() {
     fun podcastBox(): Box<Podcast>? {
         return boxStore.boxFor(Podcast::class.java)
     }
+
+    fun chronologicalPodcasts() : List<Podcast> {
+        return podcastBox()!!.all.sortedByDescending {
+            if (it.episodes.isNotEmpty()) {
+                it.episodes.first().publishDate!!.time
+            } else {
+                0
+            }
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.zacneubert.echo.player
 
 import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.Fragment
@@ -11,10 +12,8 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.RelativeLayout
-import android.widget.SeekBar
-import android.widget.TextView
+import android.widget.*
+import com.bumptech.glide.Glide
 import com.zacneubert.echo.R
 import com.zacneubert.echo.models.Episode
 import com.zacneubert.echo.player.MediaPlayerService.Companion.duration
@@ -34,6 +33,8 @@ class PlayerFragment : Fragment() {
     private lateinit var seekBar: SeekBar
     private lateinit var seekProgress: TextView
     private lateinit var seekMaximum: TextView
+    private lateinit var podcastArt: ImageView
+    private lateinit var episodeArt: ImageView
 
     private var uiTimer: Timer = Timer()
     private var handler: Handler = Handler()
@@ -58,6 +59,8 @@ class PlayerFragment : Fragment() {
         seekBar = rootView.findViewById(R.id.player_seek_bar)
         seekProgress = rootView.findViewById(R.id.player_progress_text)
         seekMaximum = rootView.findViewById(R.id.player_progress_max)
+        episodeArt = rootView.findViewById(R.id.episode_art)
+        podcastArt = rootView.findViewById(R.id.podcast_art)
 
         playButton.setOnClickListener {
             activity?.apply {
@@ -142,14 +145,22 @@ class PlayerFragment : Fragment() {
             if (activity == null) return@post
             val context: Context = activity as FragmentActivity
 
-            backgroundLayout.background = activity?.getDrawable(R.drawable.smash)
-
             metadata(context)?.apply {
                 episodeTitle.text = this.description.title
                 showTitle.text = podcastTitle(context)
                 duration(context)?.apply {
                     seekBar.max = this.toInt()
                     seekMaximum.text = longToTime(this)
+                }
+
+                val albumArtUriString = this.getString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)
+                if(albumArtUriString != null) {
+                    Glide.with(context).load(Uri.parse(albumArtUriString)).into(podcastArt)
+                }
+
+                val episodeArtUriString = this.getString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI)
+                if(episodeArtUriString != null) {
+                    Glide.with(context).load(Uri.parse(episodeArtUriString)).into(episodeArt)
                 }
             }
 

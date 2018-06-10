@@ -7,10 +7,7 @@ import android.support.v7.widget.CardView
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import com.bumptech.glide.Glide
 import com.zacneubert.echo.episode_list.EpisodeListActivity
 import com.zacneubert.echo.R
@@ -39,27 +36,11 @@ class PodcastRecyclerAdapter(private val episodeSelectedListener: EpisodeSelecte
             val titleView = this.linearLayout.findViewById<TextView>(R.id.title) as TextView
             titleView.text = podcast.title
 
-            val podcast_item_play = this.linearLayout.findViewById<ImageButton>(R.id.podcast_item_play)
-            podcast_item_play.setOnClickListener({
-                if(podcast.episodes.isNotEmpty()) {
-                    val newestEpisode = podcast.episodes.reversed()[0]
-                    episodeSelectedListener.onEpisodeSelected(newestEpisode)
-                }
-            })
+            val quickEpisodeListView = this.linearLayout.findViewById<TextView>(R.id.quick_episode_list) as ListView
 
-            val podcast_item_list_episodes = this.linearLayout.findViewById<ImageButton>(R.id.podcast_item_show_episodes)
-            podcast_item_list_episodes.setOnClickListener({
-                if(podcast.episodes.isNotEmpty()) {
-                    AlertDialog.Builder(podcast_item_list_episodes.context)
-                            .setTitle(podcast.title)
-                            .setItems(podcast.episodes.map { e -> e.title }.toTypedArray(), object : DialogInterface.OnClickListener {
-                                override fun onClick(dialog: DialogInterface, which: Int) {
-                                    episodeSelectedListener.onEpisodeSelected(podcast.episodes[which])
-                                }
-                            })
-                            .show()
-                }
-            })
+            val total_episodes = podcast.chronologicalEpisodes().size
+            val quick_episodes = podcast.chronologicalEpisodes().subList(0, minOf(3, total_episodes)).toTypedArray()
+            quickEpisodeListView.adapter = QuickEpisodeListAdapter(cardView.context, quick_episodes)
         }
     }
 

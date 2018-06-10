@@ -20,7 +20,7 @@ import java.util.Collections.max
 
 class PodcastListFragment : Fragment() {
     private lateinit var episodeSelectedListener: EpisodeSelectedListener
-    private lateinit var podcastRecycler : RecyclerView
+    private lateinit var podcastRecycler: RecyclerView
 
     companion object {
         fun newInstance(mainActivity: MainActivity): PodcastListFragment {
@@ -50,7 +50,7 @@ class PodcastListFragment : Fragment() {
     }
 
     private fun setPodcastList() {
-        val podcasts = (activity!!.application as EchoApplication).boxStore.boxFor(Podcast::class.java).all
+        val podcasts = (activity!!.application as EchoApplication).chronologicalPodcasts()
         podcastRecycler.adapter = PodcastRecyclerAdapter(episodeSelectedListener, podcasts.toTypedArray())
         podcastRecycler.layoutManager = LinearLayoutManager(activity)
     }

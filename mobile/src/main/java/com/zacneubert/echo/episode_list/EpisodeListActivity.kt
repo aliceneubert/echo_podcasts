@@ -13,15 +13,10 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.bumptech.glide.Glide
-import com.rometools.rome.io.SyndFeedInput
-import com.rometools.rome.io.XmlReader
 import com.zacneubert.echo.EchoApplication
 import com.zacneubert.echo.R
 import com.zacneubert.echo.models.Episode
 import com.zacneubert.echo.models.Podcast
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
-import java.net.URL
 
 class EpisodeListActivity : AppCompatActivity() {
     companion object {
@@ -40,6 +35,10 @@ class EpisodeListActivity : AppCompatActivity() {
     private lateinit var artView: ImageView
     private lateinit var progressBar: ProgressBar
     private lateinit var cardContainer: CardView
+    private lateinit var refreshButton: ImageView
+    private lateinit var deleteButton: ImageView
+
+    private lateinit var podcast: Podcast
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,35 +51,49 @@ class EpisodeListActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.loading)
         cardContainer = findViewById(R.id.podcast_card_container)
 
-        val podcastId = intent.extras.get(PODCAST_KEY) as Long
-        val podcast = (application as EchoApplication).podcastBox()!!.get(podcastId)
+        refreshButton = findViewById(R.id.refresh_button)
+        refreshButton.setOnClickListener{
+            refresh()
+        }
 
-        parseFeed(podcast = podcast)
+        deleteButton = findViewById(R.id.delete_button)
+        deleteButton.setOnClickListener{
+            (application as EchoApplication).podcastBox()!!.remove(podcast)
+            EpisodeListActivity@this.finish()
+        }
+
+        val podcastId = intent.extras.get(PODCAST_KEY) as Long
+        podcast = (application as EchoApplication).podcastBox()!!.get(podcastId)
+
+        parseFeed()
     }
 
-    private fun parseFeed(podcast: Podcast) {
-        doAsync {
-            val feedUrl = URL(podcast.feedUrl)
+    private fun parseFeed() {
+        titleView.text = podcast.title
+        artistView.text = podcast.description
 
-            val syndFeedInput = SyndFeedInput()
-            val feed = syndFeedInput.build(XmlReader(feedUrl))
-
-            uiThread {
-                titleView.text = feed.title.toString()
-                artistView.text = feed.description.toString()
-
-                feed.image?.apply {
-                    Glide.with(artView.context).load(this.url).into(artView)
-                    artView.visibility = VISIBLE
-                }
-
-                progressBar.visibility = GONE
-                cardContainer.visibility = VISIBLE
-
-                val episodes = feed.entries.map { e -> Episode(podcast, e) }.toTypedArray()
-                episodeRecycler.adapter = EpisodeRecyclerAdapter(episodes)
-                episodeRecycler.layoutManager = LinearLayoutManager(titleView.context)
-            }
+        if (podcast.artUri.isNotEmpty()) {
+            Glide.with(artView.context).load(podcast.artUri).into(artView)
+            artView.visibility = VISIBLE
         }
+
+        setEpisodeList(podcast.episodes)
+    }
+
+    private fun setEpisodeList(episodes: List<Episode>) {
+        val episodeArray = episodes.toTypedArray()
+        episodeRecycler.adapter = EpisodeRecyclerAdapter(episodeArray)
+        episodeRecycler.layoutManager = LinearLayoutManager(titleView.context)
+
+        progressBar.visibility = GONE
+        cardContainer.visibility = VISIBLE
+        episodeRecycler.visibility = VISIBLE
+    }
+
+    private fun refresh() {
+        cardContainer.visibility = GONE
+        episodeRecycler.visibility = GONE
+        progressBar.visibility = VISIBLE
+        podcast.refreshEpisodeList(application = application as EchoApplication, onComplete = this::setEpisodeList)
     }
 }

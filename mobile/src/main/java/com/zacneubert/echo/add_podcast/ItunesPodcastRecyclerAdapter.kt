@@ -36,7 +36,10 @@ class ItunesPodcastRecyclerAdapter(private val podcasts: Array<ItunesPodcast>, p
 
             val podcast_item_add = this.linearLayout.findViewById<ImageButton>(R.id.itunes_podcast_item_add)
             podcast_item_add.setOnClickListener({
-                application.boxStore.boxFor(Podcast::class.java).put(itunesPodcast.asPodcast())
+                val podcast = itunesPodcast.asPodcast()
+                application.boxStore.boxFor(Podcast::class.java).put(podcast)
+                podcast.refreshEpisodeList(application, null)
+
                 Toast.makeText(podcast_item_add.context, "Added!", Toast.LENGTH_SHORT).show()
             })
         }
