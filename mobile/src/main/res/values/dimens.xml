@@ -14,4 +14,6 @@
 
     <dimen name="episode_icon_size">35dp</dimen>
     <dimen name="episode_list_icon_spacing">5dp</dimen>
+    <dimen name="badge_diameter">30dp</dimen>
+    <dimen name="badge_text_size">18sp</dimen>
 </resources>

@@ -11,6 +11,7 @@ import com.zacneubert.echo.models.Episode
 import com.zacneubert.echo.player.MediaPlayerService
 import com.zacneubert.echo.player.PlayerFragment
 import com.zacneubert.echo.playlist_list.PlaylistListFragment
+import com.zacneubert.echo.podcast_grid.PodcastGridFragment
 import com.zacneubert.echo.podcast_list.EpisodeSelectedListener
 import com.zacneubert.echo.podcast_list.PodcastListFragment
 import com.zacneubert.echo.settings.SettingsFragment
@@ -33,7 +34,7 @@ class MainActivity : AppCompatActivity(), EpisodeSelectedListener {
         SETTINGS(R.id.settings)
     }
 
-    val podcastListFragment: PodcastListFragment = PodcastListFragment.newInstance(this)
+    val podcastListFragment: PodcastGridFragment = PodcastGridFragment.newInstance(this)
     val playlistListFragment: PlaylistListFragment = PlaylistListFragment.newInstance(this)
     var playerFragment: PlayerFragment = PlayerFragment()
     var settingsFragment: SettingsFragment = SettingsFragment()
