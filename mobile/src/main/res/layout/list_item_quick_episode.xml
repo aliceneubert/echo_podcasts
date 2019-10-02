@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:layout_width="match_parent"
     android:paddingTop="5dp"
     android:paddingBottom="5dp"
@@ -8,11 +8,36 @@
     android:paddingRight="5dp"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/quick_episode_title"
+    <com.zacneubert.echo.views.EpisodeIconRow
+        android:id="@+id/quick_icon_row"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <Space
+        android:layout_width="15dp"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:id="@+id/quick_episode_title_container"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="15sp"
-        android:hint="Episode Title" />
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/quick_episode_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:maxLines="1"
+            android:textSize="15sp"
+            android:hint="Episode Title" />
+
+        <TextView
+            android:id="@+id/quick_episode_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:textSize="12sp"
+            android:hint="Episode Date" />
+    </LinearLayout>
 
 </LinearLayout>

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.zacneubert.echo.episode_list.EpisodeListActivity">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/podcast_card_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:padding="10dp"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/playlist_art"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:adjustViewBounds="true" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="Title"
+                        android:textColor="@color/textDark"
+                        android:textSize="@dimen/podcast_title_textsize" />
+
+                    <ScrollView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/description"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:hint="Description"
+                            android:textColor="@color/textNeutral" />
+                    </ScrollView>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/play_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentLeft="true"
+                            android:adjustViewBounds="true"
+                            android:src="@drawable/ic_play_arrow_black_24dp" />
+
+                        <Space
+                            android:layout_width="@dimen/episode_list_icon_spacing"
+                            android:layout_height="wrap_content" />
+
+                        <ImageView
+                            android:id="@+id/shuffle_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentLeft="true"
+                            android:adjustViewBounds="true"
+                            android:src="@drawable/ic_shuffle_black_24dp" />
+
+                        <Space
+                            android:layout_width="@dimen/episode_list_icon_spacing"
+                            android:layout_height="wrap_content" />
+
+                        <ImageView
+                            android:id="@+id/clear_listened_to"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentLeft="true"
+                            android:adjustViewBounds="true"
+                            android:src="@drawable/ic_border_clear_black_24dp" />
+
+
+                        <Space
+                            android:layout_width="@dimen/episode_list_icon_spacing"
+                            android:layout_height="wrap_content" />
+
+                        <ImageView
+                            android:id="@+id/reverse_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentLeft="true"
+                            android:adjustViewBounds="true"
+                            android:src="@drawable/ic_arrow_downward_black_24dp" />
+
+                        <Space
+                            android:layout_width="@dimen/episode_list_icon_spacing"
+                            android:layout_height="wrap_content" />
+
+                        <ImageView
+                            android:id="@+id/delete_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:adjustViewBounds="true"
+                            android:src="@drawable/ic_delete_black_24dp" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/episode_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/podcast_card_container"
+        android:nestedScrollingEnabled="true" />
+
+</RelativeLayout>

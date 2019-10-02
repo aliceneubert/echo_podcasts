@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <ImageButton
+        android:id="@+id/episode_played_icon"
+        android:layout_width="@dimen/episode_icon_size"
+        android:layout_height="@dimen/episode_icon_size"
+        android:adjustViewBounds="true"
+        android:src="@drawable/echo_logo_placeholder"
+        android:background="@color/transparent"
+        android:tint="@color/black" />
+
+    <Space
+        android:layout_width="10dp"
+        android:layout_height="wrap_content" />
+
+    <ImageButton
+        android:id="@+id/episode_download_icon"
+        android:layout_width="@dimen/episode_icon_size"
+        android:layout_height="@dimen/episode_icon_size"
+        android:adjustViewBounds="true"
+        android:src="@drawable/ic_cloud_download_black_24dp"
+        android:background="@color/transparent"
+        android:tint="@color/black" />
+</LinearLayout>

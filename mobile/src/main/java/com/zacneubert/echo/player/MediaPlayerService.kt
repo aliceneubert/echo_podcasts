@@ -13,14 +13,14 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationCompat.PRIORITY_MAX
-import android.support.v4.content.ContextCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.PRIORITY_MAX
+import androidx.core.content.ContextCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
-import android.support.v4.media.MediaBrowserServiceCompat
+import androidx.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.app.NotificationCompat.MediaStyle
+import androidx.media.app.NotificationCompat.MediaStyle
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -29,29 +29,42 @@ import com.zacneubert.echo.EchoApplication
 import com.zacneubert.echo.MainActivity
 import com.zacneubert.echo.R
 import com.zacneubert.echo.helpers.TimeMillis
-import com.zacneubert.echo.models.Episode
-import com.zacneubert.echo.models.Episode_
-import com.zacneubert.echo.models.Podcast
-import com.zacneubert.echo.models.Podcast_
+import com.zacneubert.echo.models.*
+import com.zacneubert.echo.playlist_list.addToRecentlyPlayed
+import com.zacneubert.echo.settings.VolumeSetting
 
 
-class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener {
+class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener, MediaPlayer.OnCompletionListener {
+
     companion object {
         const val EPISODE_KEY: String = "EPISODE_KEY"
-        const val PODCAST_KEY: String = "PODCAST_KEY"
+        const val PLAYLIST_KEY: String = "PLAYLIST_KEY"
+        const val SHUFFLE_KEY: String = "SHUFFLE_KEY"
         const val CHANNEL_ID: String = "Media Player Notification Channel"
         const val NOTIFICATION_ID: Int = 6
         const val MEDIA_SESSION_TOKEN: String = "MediaPlayerService"
 
         const val MEDIA_ROOT_ID: String = "ECHO_MEDIA_ROOT"
+        const val MAX_VOLUME: Int = 50
 
         var mediaPlayerService: MediaPlayerService? = null
             private set
 
+        fun ignitionIntent(context: Context, playlist: Playlist, episode: Episode): Intent {
+            return ignitionIntent(context, playlist, episode, false)
+        }
+
         fun ignitionIntent(context: Context, episode: Episode): Intent {
             val intent = Intent(context, MediaPlayerService::class.java)
             intent.putExtra(EPISODE_KEY, episode)
-            intent.putExtra(PODCAST_KEY, episode.podcast.getTarget())
+            return intent
+        }
+
+        fun ignitionIntent(context: Context, playlist: Playlist, episode: Episode, shuffle: Boolean) : Intent {
+            val intent = Intent(context, MediaPlayerService::class.java)
+            intent.putExtra(PLAYLIST_KEY, playlist.id)
+            intent.putExtra(EPISODE_KEY, episode)
+            intent.putExtra(SHUFFLE_KEY, shuffle)
             return intent
         }
 
@@ -85,6 +98,9 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
 
     lateinit var episode: Episode
     lateinit var podcast: Podcast
+    var shuffle: Boolean = false
+    var playlist: Playlist? = null
+
     var mediaPlayer: MediaPlayer = MediaPlayer()
         private set
 
@@ -120,15 +136,25 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
         mSession!!.setSessionActivity(pi)
 
         mSession!!.isActive = true
+
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         episode = intent.extras.get(EPISODE_KEY) as Episode
-        podcast = intent.extras.get(PODCAST_KEY) as Podcast
+        playlist = if (intent.hasExtra(PLAYLIST_KEY)) {
+            val playlistId: Long = intent.extras.get(PLAYLIST_KEY) as Long
+            (application as EchoApplication).playlistBox().get(playlistId)
+        } else {
+            null
+        }
+
+        shuffle = intent.getBooleanExtra(SHUFFLE_KEY, false)
 
         val application = (application as EchoApplication)
         episode = application.episodeBox()!!.find(Episode_.__ID_PROPERTY, episode.id).first()
-        podcast = application.podcastBox()!!.find(Podcast_.__ID_PROPERTY, podcast.id).first()
+        podcast = episode.podcast.getTarget()
+
+        addToRecentlyPlayed(this, episode)
 
         mediaPlayerService = this
 
@@ -153,16 +179,54 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
 
         playerPrepared = false
         mediaPlayer = MediaPlayer()
-        mediaPlayer.setDataSource(this, episode.getUri())
+        try {
+            mediaPlayer.setDataSource(this, episode.getUri(this))
+        } catch (e: Exception) {
+            episode.deleteFile(this)
+            mediaPlayer.setDataSource(this, episode.getStreamingUri(this))
+        }
         mediaPlayer.setOnPreparedListener {
             playerPrepared = true
             mMediaCallback.onPlay()
             setMetadata()
             mMediaCallback.onSeekTo(getStopTime())
         }
+        mediaPlayer.setOnCompletionListener(this)
         mediaPlayer.prepareAsync()
+
+        setVolume(VolumeSetting.get(applicationContext).toInt())
     }
 
+    override fun onCompletion(mp: MediaPlayer?) {
+        episode.played = true
+
+        val episodeBox = (application as EchoApplication).episodeBox()
+        episodeBox!!.put(episode)
+
+        stopSelf()
+
+        if (playlist != null) {
+            if(shuffle) {
+                val shuffleNext = playlist!!.episodeList().filter { e -> !e.played }.random()
+                ContextCompat.startForegroundService(this@MediaPlayerService, ignitionIntent(this@MediaPlayerService, playlist!!, shuffleNext, true))
+            } else {
+                var nextUnplayed = playlist!!.nextUnplayed()
+                if (nextUnplayed != null) {
+                    ContextCompat.startForegroundService(this@MediaPlayerService, ignitionIntent(this@MediaPlayerService, playlist!!, nextUnplayed))
+                } else {
+                    playNextNewestEpisode()
+                }
+            }
+        } else {
+            playNextNewestEpisode()
+        }
+    }
+
+    private fun playNextNewestEpisode() {
+        (application as EchoApplication).chronologicalEpisodes().firstOrNull { !it.played }?.apply {
+            ContextCompat.startForegroundService(this@MediaPlayerService, ignitionIntent(this@MediaPlayerService, this))
+        }
+    }
 
     private fun setMetadata() {
         val mediaMetadataCompatBuilder = MediaMetadataCompat.Builder()
@@ -174,12 +238,12 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
 
         var episodeArtUrl = episode.artUrl
         if (episodeArtUrl.isEmpty()) {
-            if(podcast.artUri.isNotEmpty()) {
+            if (podcast.artUri.isNotEmpty()) {
                 episodeArtUrl = podcast.artUri
             }
         }
 
-        if(episodeArtUrl.isNotEmpty()) {
+        if (episodeArtUrl.isNotEmpty()) {
             mediaMetadataCompatBuilder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, episodeArtUrl)
                     .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, episodeArtUrl)
         }
@@ -317,15 +381,23 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
             podcast?.chronologicalEpisodes()?.forEach {
                 val mediaItemBuilder = MediaDescriptionCompat.Builder()
                         .setTitle(it.title)
-                        .setMediaUri(it.getUri())
+                        .setMediaUri(it.getUri(this))
                         .setMediaId(it.id.toString())
 
-                if (it.artUrl.isNotEmpty()) mediaItemBuilder.setIconUri(Uri.parse(it.artUrl)).setMediaUri(Uri.parse(it.artUrl))
+                if (it.artUrl.isNotEmpty()) mediaItemBuilder.setIconUri(Uri.parse(it.artUrl))
 
                 mediaItems.add(MediaItem(mediaItemBuilder.build(), MediaItem.FLAG_PLAYABLE))
             }
         }
         result.sendResult(mediaItems)
+    }
+
+    fun setVolume(level: Int) {
+        val logLevel: Float = ((1 -
+                (Math.log((MAX_VOLUME - level).toDouble()) / Math.log(MAX_VOLUME.toDouble()))).toFloat()
+                )
+        mediaPlayer.setVolume(logLevel, logLevel)
+        VolumeSetting.set(applicationContext, level.toLong())
     }
 
     private inner class MediaSessionCallback : MediaSessionCompat.Callback() {
@@ -408,7 +480,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     override fun onAudioFocusChange(focusChange: Int) {
         when (focusChange) {
             AudioManager.AUDIOFOCUS_GAIN -> {
-                if (System.currentTimeMillis() - lastDucked < TimeMillis.SECOND * 10) {
+                if (System.currentTimeMillis() - lastDucked < TimeMillis.SECOND * 20) {
                     mMediaCallback.onPlay()
                 }
             }

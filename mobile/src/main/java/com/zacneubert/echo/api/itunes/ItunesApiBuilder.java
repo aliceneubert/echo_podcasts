@@ -41,7 +41,7 @@ public class ItunesApiBuilder {
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .client(okHttpClient)
-                .baseUrl("http://itunes.apple.com/")
+                .baseUrl("https://itunes.apple.com/")
                 .build();
         return retrofit.create(ItunesApi.class);
     }

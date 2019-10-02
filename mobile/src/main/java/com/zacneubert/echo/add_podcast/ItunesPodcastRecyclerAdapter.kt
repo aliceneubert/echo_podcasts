@@ -1,6 +1,6 @@
 package com.zacneubert.echo.add_podcast
 
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.*
@@ -31,17 +31,14 @@ class ItunesPodcastRecyclerAdapter(private val podcasts: Array<ItunesPodcast>, p
             val artistView = this.linearLayout.findViewById<TextView>(R.id.itunes_artist) as TextView
             artistView.text = asShortString(itunesPodcast.artistName)
 
-            val genreView = this.linearLayout.findViewById<TextView>(R.id.itunes_genre) as TextView
-            genreView.text = asShortString(itunesPodcast.primaryGenreName)
-
             val podcast_item_add = this.linearLayout.findViewById<ImageButton>(R.id.itunes_podcast_item_add)
-            podcast_item_add.setOnClickListener({
+            podcast_item_add.setOnClickListener {
                 val podcast = itunesPodcast.asPodcast()
                 application.boxStore.boxFor(Podcast::class.java).put(podcast)
                 podcast.refreshEpisodeList(application, null)
 
                 Toast.makeText(podcast_item_add.context, "Added!", Toast.LENGTH_SHORT).show()
-            })
+            }
         }
     }
 

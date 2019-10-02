@@ -14,7 +14,7 @@
         android:layout_centerInParent="true"
         android:layout_marginTop="15dp" />
 
-    <android.support.v7.widget.CardView
+    <androidx.cardview.widget.CardView
         android:id="@+id/podcast_card_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -52,7 +52,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:hint="Title"
-                        android:textColor="@color/textNeutral" />
+                        android:textColor="@color/textDark"
+                        android:textSize="@dimen/podcast_title_textsize" />
 
                     <ScrollView
                         android:layout_width="wrap_content"
@@ -63,37 +64,73 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:hint="Description"
-                            android:textColor="@color/textLight" />
+                            android:textColor="@color/textNeutral" />
                     </ScrollView>
 
-                    <RelativeLayout
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="40dp">
+                        android:layout_height="40dp"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/filter_field"
+                            android:hint="filter"
+                            android:layout_width="120dp"
+                            android:layout_height="match_parent" />
+
+                        <Space
+                            android:layout_width="@dimen/episode_list_icon_spacing"
+                            android:layout_height="wrap_content" />
+
+                        <ImageView
+                            android:id="@+id/save_as_playlist_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:adjustViewBounds="true"
+                            android:src="@drawable/ic_playlist_add_check_black_24dp" />
+
+                        <Space
+                            android:layout_width="@dimen/episode_list_icon_spacing"
+                            android:layout_height="wrap_content" />
+
+                        <ImageView
+                            android:id="@+id/reverse_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentLeft="true"
+                            android:adjustViewBounds="true"
+                            android:src="@drawable/ic_arrow_downward_black_24dp" />
+
+                        <Space
+                            android:layout_width="@dimen/episode_list_icon_spacing"
+                            android:layout_height="wrap_content" />
 
                         <ImageView
                             android:id="@+id/refresh_button"
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:layout_alignParentLeft="true"
                             android:adjustViewBounds="true"
                             android:src="@drawable/ic_refresh_black_24dp" />
+
+                        <Space
+                            android:layout_width="@dimen/episode_list_icon_spacing"
+                            android:layout_height="wrap_content" />
 
                         <ImageView
                             android:id="@+id/delete_button"
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:layout_alignParentRight="true"
                             android:adjustViewBounds="true"
                             android:src="@drawable/ic_delete_black_24dp" />
 
-                    </RelativeLayout>
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
 
         </LinearLayout>
-    </android.support.v7.widget.CardView>
+    </androidx.cardview.widget.CardView>
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/episode_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

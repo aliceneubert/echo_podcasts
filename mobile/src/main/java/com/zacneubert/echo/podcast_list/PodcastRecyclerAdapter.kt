@@ -2,19 +2,20 @@ package com.zacneubert.echo.podcast_list
 
 import android.content.Context
 import android.content.DialogInterface
-import android.support.v7.app.AlertDialog
-import android.support.v7.widget.CardView
-import android.support.v7.widget.RecyclerView
+import androidx.appcompat.app.AlertDialog
+import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.*
 import com.bumptech.glide.Glide
+import com.zacneubert.echo.EchoApplication
 import com.zacneubert.echo.episode_list.EpisodeListActivity
 import com.zacneubert.echo.R
 import com.zacneubert.echo.models.Podcast
 
 
-class PodcastRecyclerAdapter(private val episodeSelectedListener: EpisodeSelectedListener, private val podcasts: Array<Podcast>) : RecyclerView.Adapter<PodcastRecyclerAdapter.ViewHolder>() {
+class PodcastRecyclerAdapter(private val application: EchoApplication, private val podcasts: Array<Podcast>) : RecyclerView.Adapter<PodcastRecyclerAdapter.ViewHolder>() {
 
     class ViewHolder(val linearLayout: LinearLayout) : RecyclerView.ViewHolder(linearLayout)
 
@@ -40,7 +41,7 @@ class PodcastRecyclerAdapter(private val episodeSelectedListener: EpisodeSelecte
 
             val total_episodes = podcast.chronologicalEpisodes().size
             val quick_episodes = podcast.chronologicalEpisodes().subList(0, minOf(3, total_episodes)).toTypedArray()
-            quickEpisodeListView.adapter = QuickEpisodeListAdapter(cardView.context, quick_episodes)
+            quickEpisodeListView.adapter = QuickEpisodeListAdapter(application, quick_episodes)
         }
     }
 

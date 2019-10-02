@@ -3,14 +3,17 @@ package com.zacneubert.echo
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.BottomNavigationView
-import android.support.v4.app.Fragment
-import android.support.v7.app.AppCompatActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AppCompatActivity
+import android.widget.Toast
 import com.zacneubert.echo.models.Episode
 import com.zacneubert.echo.player.MediaPlayerService
 import com.zacneubert.echo.player.PlayerFragment
+import com.zacneubert.echo.playlist_list.PlaylistListFragment
 import com.zacneubert.echo.podcast_list.EpisodeSelectedListener
 import com.zacneubert.echo.podcast_list.PodcastListFragment
+import com.zacneubert.echo.settings.SettingsFragment
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), EpisodeSelectedListener {
@@ -25,12 +28,15 @@ class MainActivity : AppCompatActivity(), EpisodeSelectedListener {
 
     enum class MainFragmentChoice(val num: Int) {
         PODCAST(R.id.podcasts),
+        PLAYLIST(R.id.playlists),
         NOW_PLAYING(R.id.now_playing),
         SETTINGS(R.id.settings)
     }
 
     val podcastListFragment: PodcastListFragment = PodcastListFragment.newInstance(this)
+    val playlistListFragment: PlaylistListFragment = PlaylistListFragment.newInstance(this)
     var playerFragment: PlayerFragment = PlayerFragment()
+    var settingsFragment: SettingsFragment = SettingsFragment()
 
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         swapToFragment(item.itemId)
@@ -68,13 +74,18 @@ class MainActivity : AppCompatActivity(), EpisodeSelectedListener {
     private fun swapToFragment(fragmentType: Int) {
         when (fragmentType) {
             MainFragmentChoice.PODCAST.num -> swapToFragment(podcastListFragment)
+            MainFragmentChoice.PLAYLIST.num -> swapToFragment(playlistListFragment)
             MainFragmentChoice.NOW_PLAYING.num -> {
-                MediaPlayerService.mediaPlayerService?.apply {
-                    playerFragment = PlayerFragment.newInstance(this@MainActivity, this.episode, false)
+                if(MediaPlayerService.mediaPlayerService != null) {
+                    MediaPlayerService.mediaPlayerService?.apply {
+                        playerFragment = PlayerFragment.newInstance(this@MainActivity, this.episode, false)
+                    }
+                    swapToFragment(playerFragment)
+                } else {
+                    Toast.makeText(this, "Nothing is playing!", Toast.LENGTH_SHORT).show()
                 }
-                swapToFragment(playerFragment)
             }
-            MainFragmentChoice.SETTINGS.num -> swapToFragment(podcastListFragment)
+            MainFragmentChoice.SETTINGS.num -> swapToFragment(settingsFragment)
             else -> {
                 throw Exception("Bad Fragment Type %d".format(fragmentType))
             }

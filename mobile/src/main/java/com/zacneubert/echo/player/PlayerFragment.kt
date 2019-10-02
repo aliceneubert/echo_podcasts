@@ -5,9 +5,9 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
-import android.support.v4.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.core.content.ContextCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +21,7 @@ import com.zacneubert.echo.player.MediaPlayerService.Companion.mediaControls
 import com.zacneubert.echo.player.MediaPlayerService.Companion.metadata
 import com.zacneubert.echo.player.MediaPlayerService.Companion.playbackState
 import com.zacneubert.echo.player.MediaPlayerService.Companion.podcastTitle
+import com.zacneubert.echo.settings.VolumeSetting
 import java.util.*
 
 class PlayerFragment : Fragment() {
@@ -35,6 +36,7 @@ class PlayerFragment : Fragment() {
     private lateinit var seekMaximum: TextView
     private lateinit var podcastArt: ImageView
     private lateinit var episodeArt: ImageView
+    private lateinit var volumeBar: SeekBar
 
     private var uiTimer: Timer = Timer()
     private var handler: Handler = Handler()
@@ -61,6 +63,7 @@ class PlayerFragment : Fragment() {
         seekMaximum = rootView.findViewById(R.id.player_progress_max)
         episodeArt = rootView.findViewById(R.id.episode_art)
         podcastArt = rootView.findViewById(R.id.podcast_art)
+        volumeBar = rootView.findViewById(R.id.volume_bar)
 
         playButton.setOnClickListener {
             activity?.apply {
@@ -106,6 +109,28 @@ class PlayerFragment : Fragment() {
                 if (fromUser) {
                     activity?.apply {
                         mediaControls(this)?.seekTo(progress.toLong())
+                    }
+                }
+            }
+        })
+
+        volumeBar.max = MediaPlayerService.MAX_VOLUME
+        volumeBar.progress = VolumeSetting.get(rootView.context).toInt()
+        volumeBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if(fromUser) {
+                    activity?.apply {
+                        MediaPlayerService.mediaPlayerService.apply {
+                            this!!.setVolume(progress)
+                        }
                     }
                 }
             }

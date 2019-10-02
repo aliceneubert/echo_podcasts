@@ -2,14 +2,12 @@ package com.zacneubert.echo.add_podcast
 
 import android.os.Bundle
 import android.os.Handler
-import android.provider.ContactsContract
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.Toast
 import com.zacneubert.echo.EchoApplication
 import com.zacneubert.echo.R
@@ -31,7 +29,7 @@ class AddPodcastActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_podcast)
+        setContentView(R.layout.activity_add_podcast_from_itunes)
 
         itunesPodcastRecycler = findViewById<RecyclerView>(R.id.itunes_podcast_recycler) as RecyclerView
         queryEditText = findViewById<EditText>(R.id.add_podcast_query) as EditText

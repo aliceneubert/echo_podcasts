@@ -6,4 +6,12 @@
     <dimen name="player_seek_text_size">12sp</dimen>
     <dimen name="player_card_controls_margin">10dp</dimen>
 
+    <dimen name="podcast_title_textsize">20sp</dimen>
+    <dimen name="podcast_subtitle_textsize">17sp</dimen>
+
+    <dimen name="episode_title_textsize">17sp</dimen>
+    <dimen name="episode_subtitle_textsize">14sp</dimen>
+
+    <dimen name="episode_icon_size">35dp</dimen>
+    <dimen name="episode_list_icon_spacing">5dp</dimen>
 </resources>
