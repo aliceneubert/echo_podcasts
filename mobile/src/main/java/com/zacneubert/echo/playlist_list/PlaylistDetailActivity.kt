@@ -97,7 +97,7 @@ class PlaylistDetailActivity : AppCompatActivity() {
             EpisodeListActivity@ this.finish()
         }
 
-        val playlistId = intent.extras.get(PLAYLIST_KEY) as Long
+        val playlistId = intent.extras?.get(PLAYLIST_KEY) as Long
         playlist = EchoApplication.instance(this).playlistBox().get(playlistId)
 
         setContent()

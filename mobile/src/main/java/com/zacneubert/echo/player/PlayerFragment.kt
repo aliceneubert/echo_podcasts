@@ -166,7 +166,7 @@ class PlayerFragment : Fragment() {
     }
 
     fun onMediaStateChange() {
-        handler.post({
+        handler.post {
             if (activity == null) return@post
             val context: Context = activity as FragmentActivity
 
@@ -199,6 +199,6 @@ class PlayerFragment : Fragment() {
                 seekBar.progress = this.position.toInt()
                 seekProgress.text = longToTime(this.position)
             }
-        })
+        }
     }
 }

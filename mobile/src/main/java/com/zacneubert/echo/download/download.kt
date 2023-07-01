@@ -11,7 +11,7 @@ import java.net.URL
 
 
 @Throws(IOException::class)
-fun downloadFile(url: String, file: File, updateProgress: ((Long, Long) -> Unit)?) {
+fun downloadFile(url: String, file: File, updateProgress: ((Long, Long) -> Unit)?, onComplete: (() -> Unit)? = null) {
     var url = url
     var base: URL
     var next: URL
@@ -71,5 +71,9 @@ fun downloadFile(url: String, file: File, updateProgress: ((Long, Long) -> Unit)
 
     if (updateProgress != null) {
         updateProgress(filesize.toLong(), filesize.toLong())
+    }
+
+    if (onComplete != null) {
+        onComplete()
     }
 }

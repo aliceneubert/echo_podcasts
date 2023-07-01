@@ -64,9 +64,11 @@ class MassDownloadService : Service() {
         registerReceiver()
 
         var episodeIds = intent.extras
-                .getStringArrayList(EPISODES_KEY)
-                .map { e_id -> e_id.toLong() }
-        downloadFiles(episodeIds)
+                ?.getStringArrayList(EPISODES_KEY)
+                ?.map { e_id -> e_id.toLong() }
+        episodeIds?.let {ids ->
+            downloadFiles(ids)
+        }
 
         return START_STICKY
     }

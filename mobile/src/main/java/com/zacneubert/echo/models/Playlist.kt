@@ -29,8 +29,8 @@ import java.net.URLConnection
 
     constructor(parcel: Parcel) : this() {
         id = parcel.readLong()
-        title = parcel.readString()
-        description = parcel.readString()
+        title = parcel.readString() ?: ""
+        description = parcel.readString() ?: ""
     }
 
     fun topNChronological(n: Int): List<Episode> {

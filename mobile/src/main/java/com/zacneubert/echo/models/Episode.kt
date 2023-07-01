@@ -1,12 +1,10 @@
 package com.zacneubert.echo.models
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.core.content.ContextCompat
-import android.widget.Toast
 import com.rometools.rome.feed.synd.SyndEntry
 import com.zacneubert.echo.EchoApplication
 import com.zacneubert.echo.download.DownloadService
@@ -18,7 +16,6 @@ import io.objectbox.annotation.Id
 import io.objectbox.relation.ToOne
 import java.io.File
 import java.util.*
-import kotlin.system.exitProcess
 
 @Entity
 public class Episode() : Parcelable {
@@ -39,12 +36,12 @@ public class Episode() : Parcelable {
 
     constructor(parcel: Parcel) : this() {
         id = parcel.readLong()
-        uid = parcel.readString()
-        title = parcel.readString()
-        streamingUrl = parcel.readString()
+        uid = parcel.readString() ?: ""
+        title = parcel.readString() ?: ""
+        streamingUrl = parcel.readString() ?: ""
         lastStopTime = parcel.readLong()
-        artUrl = parcel.readString()
-        description = parcel.readString()
+        artUrl = parcel.readString() ?: ""
+        description = parcel.readString() ?: ""
         played = parcel.readByte() != 0.toByte()
     }
 
@@ -87,9 +84,9 @@ public class Episode() : Parcelable {
         return scrubFilename(String.format("files/%s-%s", this.podcast.getTarget().title, this.title))
     }
 
-    fun downloadFile(application: EchoApplication) {
+    fun downloadFile(application: EchoApplication, autoplay: Boolean = false) {
         if(!getFile(application).exists()) {
-            ContextCompat.startForegroundService(application, DownloadService.ignitionIntent(application, this))
+            ContextCompat.startForegroundService(application, DownloadService.ignitionIntent(application, this, autoplay))
             this.downloadDate = Date()
         }
     }
@@ -104,8 +101,12 @@ public class Episode() : Parcelable {
         return context.dataDir.resolve(relativePath())
     }
 
-    fun getStreamingUri(context: Context): Uri {
+    fun getStreamingUri(): Uri {
         return Uri.parse(streamingUrl)
+    }
+
+    fun fileExists(context: Context): Boolean {
+        return getFile(context).exists()
     }
 
     fun getUri(context: Context): Uri {

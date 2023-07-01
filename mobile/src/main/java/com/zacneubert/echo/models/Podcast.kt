@@ -36,11 +36,11 @@ class Podcast() : Parcelable {
 
     constructor(parcel: Parcel) : this() {
         id = parcel.readLong()
-        title = parcel.readString()
-        description = parcel.readString()
-        artist = parcel.readString()
-        feedUrl = parcel.readString()
-        artUri = parcel.readString()
+        title = parcel.readString() ?: ""
+        description = parcel.readString() ?: ""
+        artist = parcel.readString() ?: ""
+        feedUrl = parcel.readString() ?: ""
+        artUri = parcel.readString() ?: ""
     }
 
     constructor(link: String) : this() {
@@ -52,7 +52,7 @@ class Podcast() : Parcelable {
         return if (lastModified > feedLastModified || lastModified == 0L) {
             feedLastModified = lastModified
 
-            Podcast.urlToFeed(feedUrl)
+            urlToFeed(feedUrl)
         } else {
             null
         }
@@ -106,9 +106,14 @@ class Podcast() : Parcelable {
             return listOf()
         }
 
-        val allUIDs = episodes.map { e -> e.uid }
-
         val feed = getFeedAndUpdateAttrs(application)
+
+        val isPatreon = episodes.firstOrNull()?.podcast?.target?.feedUrl?.contains("patreon") == true
+        if(isPatreon) { // patreon feeds are stupid and need to be reminded
+            this.episodes.clear()
+        }
+
+        val allUIDs = episodes.map { e -> e.uid }
 
         if (feed != null) {
             feed.entries.forEach {
@@ -117,8 +122,7 @@ class Podcast() : Parcelable {
                     this.episodes.add(episode)
                 }
             }
-            application.podcastBox()!!.put(this)
-
+            application.podcastBox().put(this)
         }
 
         return this.episodes.toList()
@@ -129,19 +133,28 @@ class Podcast() : Parcelable {
             return
         }
 
+        val isPatreon = episodes.firstOrNull()?.podcast?.target?.feedUrl?.startsWith("https://www.patreon.com/rss") == true
+        if(isPatreon) { // patreon feeds are stupid and need to be reminded
+            this.episodes.clear()
+        }
+
         doAsync {
             val allUIDs = episodes.map { e -> e.uid }
-            val podcast = Podcast@ this.weakRef.get()!!
+            val podcast = this.weakRef.get()!!
 
             val feed = getFeedAndUpdateAttrs(application)
+
             if (feed != null) {
                 feed.entries.forEach {
                     if (!allUIDs.contains(it.uri)) {
-                        val episode = Episode(Podcast@ this.weakRef.get()!!, it)
+                        val episode = Episode(this.weakRef.get()!!, it)
                         podcast.episodes.add(episode)
+                    } else {
+                        val x = 6
+                        val y = 7
                     }
                 }
-                application.podcastBox()!!.put(podcast)
+                application.podcastBox().put(podcast)
             }
 
             uiThread {

@@ -12,6 +12,12 @@ import com.zacneubert.echo.player.MediaPlayerService.Companion.playbackState
 class MediaIntentReceiver : BroadcastReceiver() {
     companion object {
         const val MEDIA_INTENT_KEY_CODE: String = "MEDIA_INTENT_KEY_CODE"
+
+        fun intent(context: Context, keyCode: Int): Intent {
+            return Intent(context, MediaIntentReceiver::class.java).apply {
+                putExtra(MediaIntentReceiver.MEDIA_INTENT_KEY_CODE, keyCode)
+            }
+        }
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -40,6 +46,7 @@ class MediaIntentReceiver : BroadcastReceiver() {
             when (keyCode) {
                 KeyEvent.KEYCODE_MEDIA_PLAY -> play()
                 KeyEvent.KEYCODE_MEDIA_PAUSE -> pause()
+
                 KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
                     when(playbackState(context)?.state) {
                         PlaybackStateCompat.STATE_PLAYING -> pause()
@@ -54,6 +61,8 @@ class MediaIntentReceiver : BroadcastReceiver() {
                 KeyEvent.KEYCODE_MEDIA_REWIND,
                 KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD,
                 KeyEvent.KEYCODE_MEDIA_PREVIOUS -> skipToPrevious()
+
+                KeyEvent.KEYCODE_REFRESH -> sendCustomAction("REFRESH", null)
             }
         }
     }

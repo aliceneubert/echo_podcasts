@@ -123,7 +123,7 @@ class EpisodeListActivity : AppCompatActivity() {
             EpisodeListActivity@ this.finish()
         }
 
-        val podcastId = intent.extras.get(PODCAST_KEY) as Long
+        val podcastId = intent.extras?.get(PODCAST_KEY) as Long
         podcast = (application as EchoApplication).podcastBox()!!.get(podcastId)
 
         filterFeed()

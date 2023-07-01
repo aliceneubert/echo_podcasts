@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity(), EpisodeSelectedListener {
     val podcastListFragment: PodcastGridFragment = PodcastGridFragment.newInstance(this)
     val playlistListFragment: PlaylistListFragment = PlaylistListFragment.newInstance(this)
     var playerFragment: PlayerFragment = PlayerFragment()
-    var settingsFragment: SettingsFragment = SettingsFragment()
+    var settingsFragment: SettingsFragment = SettingsFragment.newInstance()
 
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         swapToFragment(item.itemId)

@@ -16,7 +16,7 @@ import com.zacneubert.echo.views.EpisodeIconRow
 class QuickEpisodeListAdapter(private val application: EchoApplication, private val episodes: Array<Episode>) : ArrayAdapter<Episode>(application, R.layout.list_item_quick_episode, episodes) {
     class ViewHolder(val linearLayout: LinearLayout) : RecyclerView.ViewHolder(linearLayout)
 
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val episode = episodes[position]
 
         var rootView = convertView

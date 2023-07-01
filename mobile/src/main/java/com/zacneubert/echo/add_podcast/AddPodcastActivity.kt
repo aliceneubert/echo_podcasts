@@ -31,8 +31,8 @@ class AddPodcastActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_podcast_from_itunes)
 
-        itunesPodcastRecycler = findViewById<RecyclerView>(R.id.itunes_podcast_recycler) as RecyclerView
-        queryEditText = findViewById<EditText>(R.id.add_podcast_query) as EditText
+        itunesPodcastRecycler = findViewById<RecyclerView>(R.id.itunes_podcast_recycler)
+        queryEditText = findViewById<EditText>(R.id.add_podcast_query)
         queryEditText.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
@@ -51,7 +51,7 @@ class AddPodcastActivity : AppCompatActivity() {
                             initializeListFromQuery()
                         }
                     }
-                }, 1000)
+                }, 2000)
                 stoppedTypingSet = true
             }
         })

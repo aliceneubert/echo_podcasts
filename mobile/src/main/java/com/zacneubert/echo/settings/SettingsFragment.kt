@@ -25,11 +25,10 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    lateinit var mainActivity: MainActivity
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val rootView = inflater.inflate(R.layout.fragment_settings, container, false)
 
+        val context = rootView.context
         val refreshPodcastsButton = rootView.findViewById<Button>(R.id.refresh_button) as Button
         refreshPodcastsButton.setOnClickListener { _ ->
             val application = activity!!.application as EchoApplication
@@ -46,14 +45,46 @@ class SettingsFragment : Fragment() {
 
         val triggerSchedulingButton = rootView.findViewById<Button>(R.id.trigger_scheduling_button) as Button
         triggerSchedulingButton.setOnClickListener {
-            scheduleEveryHour(triggerSchedulingButton.context)
+            scheduleEveryHour(context)
         }
 
         val massDownloadButton = rootView.findViewById<Button>(R.id.mass_download_button) as Button
         massDownloadButton.setOnClickListener {
             ContextCompat.startForegroundService(
-                    massDownloadButton.context,
-                    MassDownloadSetupService.ignitionIntent(massDownloadButton.context))
+                    context,
+                    MassDownloadSetupService.ignitionIntent(context))
+        }
+
+        (rootView.findViewById<Button>(R.id.delete_all_episodes) as Button). setOnClickListener {
+            val box = (context.applicationContext as EchoApplication).episodeBox()
+            var filesDeleted = 0
+            var episodesDeleted = 0
+            box.all.forEach {
+                if (it.fileExists(context)) {
+                    it.deleteFile(context)
+                    filesDeleted += 1
+                }
+                box.remove(it)
+                episodesDeleted += 1
+            }
+            Toast.makeText(context, "Deleted %d episodes and %d files".format(episodesDeleted, filesDeleted), Toast.LENGTH_LONG).show()
+        }
+
+        (rootView.findViewById<Button>(R.id.clean_db_button) as Button). setOnClickListener {
+            val box = (context.applicationContext as EchoApplication).episodeBox()
+            var filesDeleted = 0
+            var episodesDeleted = 0
+            box.all.forEach {
+                if (it.podcast.target == null) {
+                    if (it.fileExists(context)) {
+                        it.deleteFile(context)
+                        filesDeleted += 1
+                    }
+                    box.remove(it)
+                    episodesDeleted += 1
+                }
+            }
+            Toast.makeText(context, "Deleted %d episodes and %d files".format(episodesDeleted, filesDeleted), Toast.LENGTH_LONG).show()
         }
 
         return rootView

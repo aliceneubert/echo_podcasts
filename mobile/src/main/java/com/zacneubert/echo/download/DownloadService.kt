@@ -1,3 +1,5 @@
+@file:Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+
 package com.zacneubert.echo.download
 
 import android.app.*
@@ -6,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
+import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_MAX
 import androidx.core.content.ContextCompat
@@ -15,21 +18,27 @@ import com.zacneubert.echo.R
 import com.zacneubert.echo.models.Episode
 import com.zacneubert.echo.models.Episode_
 import com.zacneubert.echo.models.Podcast
+import com.zacneubert.echo.player.MediaIntentReceiver
+import com.zacneubert.echo.player.MediaPlayerService
 import org.jetbrains.anko.doAsync
 
 
 class DownloadService : Service() {
     companion object {
         const val EPISODE_KEY: String = "EPISODE_KEY"
+        const val AUTOPLAY_KEY: String = "AUTOPLAY_KEY"
+        const val PLAYLIST_KEY: String = "PLAYLIST_KEY"
+        const val PODCAST_KEY: String = "PODCAST_KEY"
         const val CHANNEL_ID: String = "Echo Downloading Episodes"
 
         const val BROADCAST_ACTION: String = "DOWNLOAD_PROGRESS"
         const val BROADCAST_EPISODE_ID: String = "EPISODE_ID"
         const val BROADCAST_PROGRESS_PERCENT: String = "PROGRESS_PERCENT"
 
-        fun ignitionIntent(context: Context, episode: Episode): Intent {
+        fun ignitionIntent(context: Context, episode: Episode, autoplay: Boolean = false): Intent {
             val intent = Intent(context, DownloadService::class.java)
             intent.putExtra(EPISODE_KEY, episode)
+            intent.putExtra(AUTOPLAY_KEY, autoplay)
             return intent
         }
 
@@ -50,11 +59,11 @@ class DownloadService : Service() {
             return START_NOT_STICKY
         }
 
-        episode = intent.extras.get(EPISODE_KEY) as Episode
+        episode = intent.extras?.get(EPISODE_KEY) as Episode
 
         val application = (application as EchoApplication)
         episode = application.episodeBox()!!.find(Episode_.__ID_PROPERTY, episode.id).first()
-        podcast = episode.podcast.getTarget()
+        podcast = episode.podcast.target
 
         notificationId = (podcast.id * 7 * episode.id * 11).toInt() // just a quick hash
 
@@ -62,7 +71,8 @@ class DownloadService : Service() {
 
         registerReceiver()
 
-        downloadFile(this)
+        val autoplay = intent.extras?.getBoolean(AUTOPLAY_KEY, false) ?: false
+        downloadFile(this, autoplay)
 
         return START_STICKY
     }
@@ -72,12 +82,12 @@ class DownloadService : Service() {
         val intentFilter = IntentFilter()
         intentFilter.addAction(BROADCAST_ACTION)
 
-        receiver = DownloadProgressReceiver({ episodeId: Long, percent: Double ->
+        receiver = DownloadProgressReceiver { episodeId: Long, percent: Double ->
             if (episodeId == episode.id) {
                 progress = percent
                 startForeground(notificationId, buildNotification())
             }
-        })
+        }
 
         this.registerReceiver(receiver, DownloadProgressReceiver.getIntentFilter())
     }
@@ -95,12 +105,21 @@ class DownloadService : Service() {
     }
 
 
-    private fun downloadFile(context: Context) {
+    private fun downloadFile(context: Context, autoplay: Boolean) {
         doAsync {
             downloadFile(episode.streamingUrl,
                     episode.getFile(this@DownloadService),
-                    { readBytes: Long, totalBytes: Long -> broadcastDownloadProgress(context, readBytes, totalBytes) })
+                    { readBytes: Long, totalBytes: Long -> broadcastDownloadProgress(context, readBytes, totalBytes) },
+                    { autoplay(autoplay) }
+            )
+
             this@DownloadService.stopSelf()
+        }
+    }
+
+    private fun autoplay(shouldAutoplay: Boolean) {
+        if (shouldAutoplay) {
+            this.sendBroadcast(MediaIntentReceiver.intent(this, KeyEvent.KEYCODE_REFRESH))
         }
     }
 
