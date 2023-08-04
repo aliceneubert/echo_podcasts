@@ -15,6 +15,7 @@ import com.zacneubert.echo.R
 import com.zacneubert.echo.download.MassDownloadSetupService
 import com.zacneubert.echo.download.scheduleEveryHour
 import com.zacneubert.echo.models.Episode
+import com.zacneubert.echo.models.Episode_
 import com.zacneubert.echo.models.Podcast
 
 class SettingsFragment : Fragment() {

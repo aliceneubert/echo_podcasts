@@ -232,7 +232,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
     }
 
     private fun playNextNewestEpisode() {
-        (application as EchoApplication).chronologicalEpisodes().firstOrNull { !it.played }?.apply {
+        (application as EchoApplication).newestUnplayedEpisode()?.apply {
             ContextCompat.startForegroundService(this@MediaPlayerService, ignitionIntent(this@MediaPlayerService, this))
         }
     }
@@ -473,16 +473,9 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
             broadcastPlaybackState()
         }
 
-        override fun onCustomAction(action: String?, extras: Bundle?) {
-            var i = 0
-            i++
-            restartPlayer()
-        }
+        override fun onCustomAction(action: String?, extras: Bundle?) { }
 
-        override fun onPlayFromSearch(query: String?, extras: Bundle?) {
-            var i = 0
-            i++
-        }
+        override fun onPlayFromSearch(query: String?, extras: Bundle?) { }
     }
 
 

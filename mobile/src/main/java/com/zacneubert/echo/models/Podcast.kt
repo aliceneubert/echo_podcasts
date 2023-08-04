@@ -3,6 +3,7 @@ package com.zacneubert.echo.models
 import android.annotation.SuppressLint
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.Log
 import com.rometools.rome.feed.synd.SyndFeed
 import com.rometools.rome.io.ParsingFeedException
 import com.rometools.rome.io.SyndFeedInput
@@ -108,17 +109,19 @@ class Podcast() : Parcelable {
 
         val feed = getFeedAndUpdateAttrs(application)
 
-        val isPatreon = episodes.firstOrNull()?.podcast?.target?.feedUrl?.contains("patreon") == true
-        if(isPatreon) { // patreon feeds are stupid and need to be reminded
-            this.episodes.clear()
-        }
-
+        val isPatreon = this.feedUrl.contains("patreon")
         val allUIDs = episodes.map { e -> e.uid }
 
         if (feed != null) {
-            feed.entries.forEach {
-                if (!allUIDs.contains(it.uri)) {
-                    val episode = Episode(this, it)
+            feed.entries.forEach { entry ->
+                if(isPatreon) {
+                    // edit episode
+                    val oldEpisode = this.episodes.firstOrNull { it.getUri(application).toString() == entry.uri }
+                    entry.enclosures.firstOrNull()?.apply { oldEpisode?.streamingUrl = this.url }
+                    application.episodeBox().put(oldEpisode)
+                    this.episodes[this.episodes.indexOfId(oldEpisode?.id!!)] = oldEpisode
+                } else if (!allUIDs.contains(entry.uri)) {
+                    val episode = Episode(this, entry)
                     this.episodes.add(episode)
                 }
             }
@@ -134,9 +137,6 @@ class Podcast() : Parcelable {
         }
 
         val isPatreon = episodes.firstOrNull()?.podcast?.target?.feedUrl?.startsWith("https://www.patreon.com/rss") == true
-        if(isPatreon) { // patreon feeds are stupid and need to be reminded
-            this.episodes.clear()
-        }
 
         doAsync {
             val allUIDs = episodes.map { e -> e.uid }
@@ -145,15 +145,23 @@ class Podcast() : Parcelable {
             val feed = getFeedAndUpdateAttrs(application)
 
             if (feed != null) {
-                feed.entries.forEach {
-                    if (!allUIDs.contains(it.uri)) {
-                        val episode = Episode(this.weakRef.get()!!, it)
+                feed.entries.forEach { syndEntry ->
+                    if (!allUIDs.contains(syndEntry.uri)) {
+                        val episode = Episode(this.weakRef.get()!!, syndEntry)
                         podcast.episodes.add(episode)
-                    } else {
-                        val x = 6
-                        val y = 7
+                    } else if(isPatreon) {
+                        val freshlyParsed = Episode(this.weakRef.get()!!, syndEntry)
+                        val oldEpisode = application.episodeBox().query().equal(Episode_.uid, syndEntry.uri).build().find().firstOrNull()
+                        if(oldEpisode != null) {
+                            oldEpisode.streamingUrl = freshlyParsed.streamingUrl
+                            if(oldEpisode.streamingUrl.equals(freshlyParsed.streamingUrl).not()) {
+                                Log.i("Echo", "STREAMINGURL changed from ${oldEpisode.streamingUrl} to ${freshlyParsed.streamingUrl}")
+                                application.episodeBox().put(oldEpisode)
+                            }
+                        }
                     }
                 }
+
                 application.podcastBox().put(podcast)
             }
 

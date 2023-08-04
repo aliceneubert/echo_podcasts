@@ -81,7 +81,9 @@ public class Episode() : Parcelable {
     }
 
     fun relativePath(): String {
-        return scrubFilename(String.format("files/%s-%s", this.podcast.getTarget().title, this.title))
+        return this.podcast.target?.let { podcast ->
+            scrubFilename(String.format("files/%s-%s", podcast.title, this.title))
+        } ?: "files/not-found"
     }
 
     fun downloadFile(application: EchoApplication, autoplay: Boolean = false) {

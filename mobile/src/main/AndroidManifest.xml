@@ -18,6 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:replace="android:appComponentFactory"
+        android:largeHeap="true"
         android:appComponentFactory="Applesauce">
 
         <activity

@@ -47,6 +47,14 @@ class EchoApplication : Application() {
         return episodeBox().all.sortedByDescending { it.publishDateOrEpoch().time }
     }
 
+    fun newestUnplayedEpisode() : Episode? {
+        return episodeBox().query()
+            .equal(Episode_.played, false)
+            .orderDesc(Episode_.publishDate)
+            .build()
+            .findFirst()
+    }
+
     fun chronologicalPodcasts() : List<Podcast> {
         return podcastBox().all.sortedByDescending {
             if (it.episodes.isNotEmpty()) {

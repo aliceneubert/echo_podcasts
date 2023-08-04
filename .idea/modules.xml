@@ -2,9 +2,15 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Echo.iml" filepath="$PROJECT_DIR$/Echo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/mobile/mobile.iml" filepath="$PROJECT_DIR$/mobile/mobile.iml" />
-      <module fileurl="file://$PROJECT_DIR$/wear/wear.iml" filepath="$PROJECT_DIR$/wear/wear.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/echo_podcasts.iml" filepath="$PROJECT_DIR$/.idea/modules/echo_podcasts.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mobile/echo_podcasts.mobile.iml" filepath="$PROJECT_DIR$/.idea/modules/mobile/echo_podcasts.mobile.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mobile/echo_podcasts.mobile.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/mobile/echo_podcasts.mobile.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mobile/echo_podcasts.mobile.main.iml" filepath="$PROJECT_DIR$/.idea/modules/mobile/echo_podcasts.mobile.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mobile/echo_podcasts.mobile.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/mobile/echo_podcasts.mobile.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/wear/echo_podcasts.wear.iml" filepath="$PROJECT_DIR$/.idea/modules/wear/echo_podcasts.wear.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/wear/echo_podcasts.wear.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/wear/echo_podcasts.wear.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/wear/echo_podcasts.wear.main.iml" filepath="$PROJECT_DIR$/.idea/modules/wear/echo_podcasts.wear.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/wear/echo_podcasts.wear.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/wear/echo_podcasts.wear.unitTest.iml" />
     </modules>
   </component>
 </project>
