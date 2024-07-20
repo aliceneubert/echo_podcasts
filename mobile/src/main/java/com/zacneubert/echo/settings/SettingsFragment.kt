@@ -96,7 +96,7 @@ class SettingsFragment : Fragment() {
 
         val episodes = chronologicalEpisodes
                 .subList(0, minOf(3, chronologicalEpisodes.size))
-                .filter { e -> e.getFile(activity as Context).exists() }
+                .filter { e -> e.getFile(application as Context).exists() }
 
         Toast.makeText(application, podcast.title + " refreshed.", Toast.LENGTH_SHORT).show()
     }

@@ -32,6 +32,7 @@ import com.zacneubert.echo.helpers.TimeMillis
 import com.zacneubert.echo.models.*
 import com.zacneubert.echo.playlist_list.addToRecentlyPlayed
 import com.zacneubert.echo.settings.VolumeSetting
+import kotlin.random.Random
 
 
 class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener, MediaPlayer.OnCompletionListener {
@@ -215,7 +216,7 @@ class MediaPlayerService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocu
             if(shuffle) {
                 val episodeList = playlist!!.episodeList()
                 if(episodeList.isNotEmpty()) {
-                    val shuffleNext = episodeList.filter { e -> !e.played }.random()
+                    val shuffleNext = episodeList.filter { e -> !e.played }.random(Random(System.currentTimeMillis()))
                     ContextCompat.startForegroundService(this@MediaPlayerService, ignitionIntent(this@MediaPlayerService, playlist!!, shuffleNext, true))
                 }
             } else {

@@ -153,9 +153,9 @@ class Podcast() : Parcelable {
                         val freshlyParsed = Episode(this.weakRef.get()!!, syndEntry)
                         val oldEpisode = application.episodeBox().query().equal(Episode_.uid, syndEntry.uri).build().find().firstOrNull()
                         if(oldEpisode != null) {
-                            oldEpisode.streamingUrl = freshlyParsed.streamingUrl
-                            if(oldEpisode.streamingUrl.equals(freshlyParsed.streamingUrl).not()) {
+                            if(oldEpisode.streamingUrl != freshlyParsed.streamingUrl) {
                                 Log.i("Echo", "STREAMINGURL changed from ${oldEpisode.streamingUrl} to ${freshlyParsed.streamingUrl}")
+                                oldEpisode.streamingUrl = freshlyParsed.streamingUrl
                                 application.episodeBox().put(oldEpisode)
                             }
                         }

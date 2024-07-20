@@ -56,8 +56,14 @@ class EpisodeIconRow : RelativeLayout {
 
     private fun refresh() {
         if(episode != null) {
-            playedIcon.setColorFilter(if(episode!!.played) grey else blue)
-            downloadedIcon.setColorFilter(if(episode!!.getFile(context).exists()) blue else grey)
+            playedIcon.setColorFilter(
+                if(episode!!.played) grey
+                else blue
+            )
+            downloadedIcon.setColorFilter(
+                if(episode!!.fileExists(context)) blue
+                else grey
+            )
         }
     }
 }
